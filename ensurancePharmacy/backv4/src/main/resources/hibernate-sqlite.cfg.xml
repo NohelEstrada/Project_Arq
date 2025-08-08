@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+    <session-factory>
+        <!-- JDBC Database connection settings for SQLite -->
+        <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+        <property name="hibernate.connection.url">jdbc:sqlite:pharmacy_db.sqlite</property>
+        
+        <!-- SQLite doesn't use username/password for file-based databases -->
+        
+        <!-- Connection pool settings (optional) -->
+        <property name="hibernate.connection.pool_size">1</property>
+        
+        <!-- SQL dialect for SQLite -->
+        <property name="hibernate.dialect">org.hibernate.community.dialect.SQLiteDialect</property>
+        
+        <!-- Show SQL statements in the console -->
+        <property name="show_sql">true</property>
+        
+        <!-- Automatically create/update the schema -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        
+        <!-- Format SQL for better readability -->
+        <property name="hibernate.format_sql">true</property>
+        
+        <!-- Use SQL comments -->
+        <property name="hibernate.use_sql_comments">true</property>
+
+        <!-- Mapping your entity classes -->
+        <mapping class="com.sources.app.entities.User"/>
+        <mapping class="com.sources.app.entities.Policy"/>
+        <mapping class="com.sources.app.entities.Appointment"/>
+        <mapping class="com.sources.app.entities.AppointmentMade"/>
+        <mapping class="com.sources.app.entities.Category"/>
+        <mapping class="com.sources.app.entities.ConfigurableAmount"/>
+        <mapping class="com.sources.app.entities.Hospital"/>
+        <mapping class="com.sources.app.entities.Medicine"/>
+        <mapping class="com.sources.app.entities.MedicinePres"/>
+        <mapping class="com.sources.app.entities.Pharmacy"/>
+        <mapping class="com.sources.app.entities.Prescription"/>
+        <mapping class="com.sources.app.entities.Service"/>
+        <mapping class="com.sources.app.entities.TotalHospital"/>
+        <mapping class="com.sources.app.entities.TotalPharmacy"/>
+        <mapping class="com.sources.app.entities.Transactions"/>
+        <mapping class="com.sources.app.entities.TransactionPolicy"/>
+        <mapping class="com.sources.app.entities.InsuranceService"/>
+        <mapping class="com.sources.app.entities.HospitalInsuranceService"/>
+        <mapping class="com.sources.app.entities.EnsuranceAppointment"/>
+    </session-factory>
+</hibernate-configuration> 

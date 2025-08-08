@@ -1,0 +1,12 @@
+.DS_Store
+/front/node_modules
+/backv4/.idea/
+/backv4/target/
+ backv4/target/classes/com/sources/app/
+.idea/
+/.idea/
+/.idea
+/front/.env
+/pharmacy/.env
+front/.nuxt/
+.env

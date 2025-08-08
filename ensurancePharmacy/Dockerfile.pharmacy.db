@@ -1,0 +1,8 @@
+FROM  container-registry.oracle.com/database/free:23.7.0.0-lite-arm64
+
+ENV ORACLE_PWD=Pharmacy1234
+ENV ORACLE_CHARACTERSET=AL32UTF8
+
+EXPOSE 1521 5500
+
+VOLUME ["/app/oracle/oradata"]

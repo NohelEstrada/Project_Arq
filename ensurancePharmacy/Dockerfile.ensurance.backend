@@ -1,0 +1,13 @@
+FROM container-registry.oracle.com/java/jdk:24-oraclelinux9
+
+WORKDIR /app
+
+COPY backv4 /app
+
+RUN dnf install maven -y
+
+RUN mvn clean install
+
+EXPOSE 8080
+
+CMD ["/bin/sh", "-c", "mvn clean compile exec:java -Dexec.mainClass='com.sources.app.App'"]

@@ -1,0 +1,5 @@
+{
+  "medicine": { "name": "Test Medicine" },
+  "category": { "name": "Test Category" },
+  "subcategory": { "name": "Test Subcategory" }
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+    <session-factory>
+        <!-- JDBC Database connection settings -->
+        <property name="hibernate.connection.driver_class">oracle.jdbc.driver.OracleDriver</property>
+        <!-- Example URL for Oracle XE; update host, port, and SID/service name as needed -->
+        <property name="hibernate.connection.url">jdbc:oracle:thin:@//64.225.58.196:1521/XEPDB1</property>
+        <property name="hibernate.connection.username">USUARIO</property>
+        <property name="hibernate.connection.password">user123</property>
+        
+        <!-- Connection pool settings (optional) -->
+        <property name="hibernate.connection.pool_size">10</property>
+        
+        <!-- SQL dialect for Oracle -->
+        <property name="hibernate.dialect">org.hibernate.dialect.OracleDialect</property>
+        
+        <!-- Show SQL statements in the console -->
+        <property name="show_sql">true</property>
+        
+        <!-- Automatically update the schema (use with caution in production) -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Optionally, configure a c3p0 connection pool -->
+        <property name="hibernate.c3p0.min_size">5</property>
+        <property name="hibernate.c3p0.max_size">20</property>
+        <property name="hibernate.c3p0.timeout">300</property>
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.idle_test_period">3000</property>
+
+        <!-- Mapping your entity classes -->
+        <mapping class="com.sources.app.entities.User"/>
+        <mapping class="com.sources.app.entities.Policy"/>
+        <mapping class="com.sources.app.entities.Appointment"/>
+        <mapping class="com.sources.app.entities.AppointmentMade"/>
+        <mapping class="com.sources.app.entities.Category"/>
+        <mapping class="com.sources.app.entities.ConfigurableAmount"/>
+        <mapping class="com.sources.app.entities.Hospital"/>
+        <mapping class="com.sources.app.entities.Medicine"/>
+        <mapping class="com.sources.app.entities.MedicinePres"/>
+        <mapping class="com.sources.app.entities.Pharmacy"/>
+        <mapping class="com.sources.app.entities.Prescription"/>
+        <mapping class="com.sources.app.entities.Service"/>
+        <mapping class="com.sources.app.entities.TotalHospital"/>
+        <mapping class="com.sources.app.entities.TotalPharmacy"/>
+        <mapping class="com.sources.app.entities.Transactions"/>
+        <mapping class="com.sources.app.entities.TransactionPolicy"/>
+        <mapping class="com.sources.app.entities.InsuranceService"/>
+        <mapping class="com.sources.app.entities.HospitalInsuranceService"/>
+        <mapping class="com.sources.app.entities.EnsuranceAppointment"/>
+    </session-factory>
+</hibernate-configuration>

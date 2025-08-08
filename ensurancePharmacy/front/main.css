@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /*light colors*/
+  --color-background: var(--color-slate-100);
+  --color-h-background: var(--color-slate-200);
+  --color-s-background: var(--color-slate-300);
+  --color-sh-background: var(--color-slate-400);
+  --color-primary: var(--color-gray-950);
+  --color-h-primary: var(--color-gray-900);
+  --color-secondary: var(--color-gray-800);
+  --color-h-secondary: var(--color-gray-700);
+  --color-terciary: var(--color-gray-600);
+  --color-h-terciary: var(--color-gray-500);
+  --color-accent: var(--color-blue-500);
+  --color-h-accent: var(--color-blue-600);
+  --color-error: var(--color-red-500);
+  --color-h-error: var(--color-red-600);
+  --color-success: var(--color-green-700);
+  --color-h-success: var(--color-green-800);
+
+  /*static colors*/
+  --color-dark:var(--color-slate-950);
+  --color-h-dark:var(--color-slate-900);
+  --color-light: var(--color-slate-50);
+  --color-h-light: var(--color-slate-200);
+
+  @keyframes materialize {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  --animate-appear-slow: materialize 1s ease forwards;
+  --animate-appear-fast: materialize 0.3s ease forwards;
+}
+
+@layer theme {
+  .dark {
+    --color-background: var(--color-slate-950);
+    --color-h-background: var(--color-slate-900);
+    --color-s-background: var(--color-slate-800);
+    --color-sh-background: var(--color-slate-600);
+    --color-primary: var(--color-gray-100);
+    --color-h-primary: var(--color-gray-200);
+    --color-secondary: var(--color-gray-300);
+    --color-h-secondary: var(--color-gray-400);
+    --color-terciary: var(--color-gray-500);
+    --color-h-terciary: var(--color-gray-600);
+    --color-accent: var(--color-yellow-300);
+    --color-h-accent: var(--color-yellow-400);
+    --color-error: var(--color-red-400);
+    --color-h-error: var(--color-red-500);
+    --color-success: var(--color-green-400);
+    --color-h-success: var(--color-green-500);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply bg-accent text-light dark:text-dark py-2 px-4 rounded-full font-bold transition duration-300 hover:bg-h-accent transform hover:scale-105;
+  }
+
+  .field {
+    @apply block w-full py-2 outline-none text-primary border-b-2 border-primary hover:border-h-primary;
+  }
+
+  .card {
+    @apply bg-background/80 backdrop-blur-md rounded-lg p-7 m-2 shadow-md;
+  }
+
+  .label {
+    @apply block text-base font-medium text-primary;
+  }
+
+  .title {
+    @apply text-center text-xl font-bold text-dark dark:text-accent;
+  }
+
+  .responsive-grid {
+    @apply grid grid-flow-row gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .bg-color {
+    @apply from-s-background to-sh-background h-full w-full bg-gradient-to-br py-8;
+  }
+
+  body {
+    @apply bg-background dark:bg-background
+  }
+
+}
+
+@utility bg-image-* {
+  @apply w-full bg-center bg-cover;
+  background-image: --value([url]);
+}

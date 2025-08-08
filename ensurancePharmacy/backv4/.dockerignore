@@ -1,0 +1,10 @@
+target/
+.idea/
+.DS_Store
+*.class
+*.jar
+*.war
+.git/
+README.md
+run-with-sqlite.sh
+run-with-sqlite.bat 

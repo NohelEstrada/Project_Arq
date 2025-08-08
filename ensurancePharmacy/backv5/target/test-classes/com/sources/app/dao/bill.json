@@ -1,0 +1,8 @@
+{
+  "idBill": null,
+  "prescription": {},
+  "taxes": 5.0,
+  "subtotal": 100.0,
+  "copay": 20.0,
+  "total": "125.0"
+}

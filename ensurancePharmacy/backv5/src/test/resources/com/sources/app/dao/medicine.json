@@ -1,0 +1,13 @@
+{
+  "name": "Test Medicine",
+  "activeMedicament": "Active Ingredient",
+  "description": "Test description",
+  "image": "image.png",
+  "concentration": "500mg",
+  "presentacion": 10.0,
+  "stock": 100,
+  "brand": "Test Brand",
+  "prescription": false,
+  "price": 9.99,
+  "soldUnits": 0
+}
