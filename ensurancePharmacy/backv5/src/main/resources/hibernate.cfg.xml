@@ -1,31 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <hibernate-configuration>
     <session-factory>
-        <!-- JDBC Database connection settings -->
-        <property name="hibernate.connection.driver_class">oracle.jdbc.driver.OracleDriver</property>
-        <!-- Example URL for Oracle XE; update host, port, and SID/service name as needed -->
-        <property name="hibernate.connection.url">jdbc:oracle:thin:@//64.225.58.196:1521/XEPDB1</property>
-        <property name="hibernate.connection.username">FARMACIA</property>
-        <property name="hibernate.connection.password">user123</property>
+        <!-- JDBC Database connection settings for SQLite -->
+        <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+        <property name="hibernate.connection.url">jdbc:sqlite:pharmacy_db.sqlite</property>
+        
+        <!-- SQLite doesn't use username/password for file-based databases -->
         
         <!-- Connection pool settings (optional) -->
-        <property name="hibernate.connection.pool_size">10</property>
+        <property name="hibernate.connection.pool_size">1</property>
         
-        <!-- SQL dialect for Oracle -->
-        <property name="hibernate.dialect">org.hibernate.dialect.OracleDialect</property>
+        <!-- SQL dialect for SQLite -->
+        <property name="hibernate.dialect">org.hibernate.community.dialect.SQLiteDialect</property>
         
         <!-- Show SQL statements in the console -->
         <property name="show_sql">true</property>
         
-        <!-- Automatically update the schema (use with caution in production) -->
+        <!-- Automatically create/update the schema -->
         <property name="hibernate.hbm2ddl.auto">update</property>
-
-        <!-- Optionally, configure a c3p0 connection pool -->
-        <property name="hibernate.c3p0.min_size">5</property>
-        <property name="hibernate.c3p0.max_size">20</property>
-        <property name="hibernate.c3p0.timeout">300</property>
-        <property name="hibernate.c3p0.max_statements">50</property>
-        <property name="hibernate.c3p0.idle_test_period">3000</property>
+        
+        <!-- Format SQL for better readability -->
+        <property name="hibernate.format_sql">true</property>
+        
+        <!-- Use SQL comments -->
+        <property name="hibernate.use_sql_comments">true</property>
 
         <!-- Mapping your entity classes -->
         <mapping class="com.sources.app.entities.User"/>

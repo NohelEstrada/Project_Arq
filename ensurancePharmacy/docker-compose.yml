@@ -1,54 +1,33 @@
+version: '3.8'
+
 services:
-  # Backend - Java API con SQLite
   backend:
-    build:
-      context: ./backv4
-      dockerfile: Dockerfile
-    container_name: ensurance-backend
+    build: ./backv5
+    container_name: pharmacy-backend
     ports:
       - "8081:8081"
-    environment:
-      - DB_TYPE=sqlite
-      - JAVA_OPTS=-Ddb.type=sqlite
-      - SERVER_PORT=8081
     volumes:
-      # Montar el archivo de base de datos para persistencia
-      - ./backv4/pharmacy_db.sqlite:/app/pharmacy_db.sqlite
+      - ./backv5/pharmacy_db.sqlite:/app/pharmacy_db.sqlite
+    environment:
+      - PHARMACY_PORT=8081
+      - PHARMACY_API_PREFIX=api2
+      - PHARMACY_ID=1
     networks:
-      - ensurance-network
-    healthcheck:
-      test: ["CMD-SHELL", "netstat -tuln | grep :8081 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      - pharmacy-network
 
-  # Frontend - Vue.js
   frontend:
-    build:
-      context: ./ensurance
-      dockerfile: Dockerfile
-    container_name: ensurance-frontend
+    build: ./pharmacy
+    container_name: pharmacy-frontend
     ports:
-      - "9008:9008"
+      - "8080:8080"
     environment:
-      - VITE_API_URL=http://localhost:8081
-      - VITE_IP=localhost
-      - VITE_PORT=9008
+      - VUE_APP_API_HOST=localhost
+      - VUE_APP_IP=localhost
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
-      - ensurance-network
-    volumes:
-      # Para desarrollo: montar el código fuente
-      - ./ensurance/src:/app/src
-    stdin_open: true
-    tty: true
+      - pharmacy-network
 
 networks:
-  ensurance-network:
-    driver: bridge
-
-volumes:
-  sqlite_data: 
+  pharmacy-network:
+    driver: bridge 

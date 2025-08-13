@@ -1,271 +1,151 @@
-# 🐳 EnsurancePharmacy - Configuración Docker
+# 🐳 Docker Setup - Pharmacy Application
 
-Este documento explica cómo ejecutar la aplicación completa de EnsurancePharmacy usando Docker, incluyendo tanto el backend (Java con SQLite) como el frontend (Vue.js).
+Esta aplicación está compuesta por:
+- **Backend**: Java API (backv5) con SQLite - Puerto 8081
+- **Frontend**: Vue.js (pharmacy) - Puerto 8080
 
-## 🏗️ Arquitectura
+## 📋 Requisitos Previos
 
-```
-┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │
-│   Vue.js        │◄──►│   Java/Spring   │
-│   Port: 9008    │    │   Port: 8080    │
-│   (ensurance)   │    │   (backv4)      │
-└─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │   SQLite        │
-                       │   Database      │
-                       │   (local file)  │
-                       └─────────────────┘
-```
+1. Docker instalado y ejecutándose
+2. Docker Compose instalado
 
-## 🔧 Prerequisitos
+## 🚀 Formas de Ejecutar
 
-- **Docker** (versión 20.10 o superior)
-- **Docker Compose** (versión 1.29 o superior)
+### Opción 1: Usar Docker Compose (Recomendado)
 
-### Verificar instalación:
 ```bash
-docker --version
-docker-compose --version
+# Ejecutar toda la aplicación
+./run-all.sh
+
+# O manualmente:
+docker-compose up --build -d
 ```
 
-## 🚀 Inicio Rápido
+### Opción 2: Ejecutar Servicios Individualmente
 
-### 1. Clonar y navegar al proyecto
 ```bash
-cd /Users/nohelestradap/Documents/VsCode/ensurancePharmacy
+# Solo el backend
+./run-backend.sh
+
+# Solo el frontend
+./run-frontend.sh
 ```
 
-### 2. Iniciar todos los servicios
+### Opción 3: Comandos Docker Manuales
+
+#### Backend
 ```bash
-./docker-start.sh
+cd backv5
+docker build -t pharmacy-backend .
+docker run -d \
+  --name pharmacy-backend-container \
+  -p 8081:8081 \
+  -v $(pwd)/pharmacy_db.sqlite:/app/pharmacy_db.sqlite \
+  pharmacy-backend
 ```
 
-### 3. Acceder a la aplicación
-- **Frontend**: http://localhost:9008
-- **Backend Pharmacy API**: http://localhost:8081/api
-
-## 📋 Comandos Disponibles
-
-### Iniciar servicios
+#### Frontend
 ```bash
-./docker-start.sh
+cd pharmacy
+docker build -t pharmacy-frontend .
+docker run -d \
+  --name pharmacy-frontend-container \
+  -p 8080:8080 \
+  -e VUE_APP_API_HOST=localhost \
+  -e VUE_APP_IP=localhost \
+  pharmacy-frontend
 ```
 
-### Detener servicios
-```bash
-./docker-stop.sh
-```
+## 🌐 URLs de Acceso
 
-### Ver logs en tiempo real
+- **Frontend**: http://localhost:8080
+- **Backend API**: http://localhost:8081
+
+## 📊 Comandos Útiles
+
 ```bash
+# Ver logs de todos los servicios
 docker-compose logs -f
-```
 
-### Ver logs de un servicio específico
-```bash
-docker-compose logs -f frontend
+# Ver logs del backend
 docker-compose logs -f backend
-```
 
-### Reconstruir imágenes
-```bash
-docker-compose build --no-cache
-```
+# Ver logs del frontend
+docker-compose logs -f frontend
 
-### Reiniciar un servicio específico
-```bash
-docker-compose restart backend
-docker-compose restart frontend
-```
+# Parar todos los servicios
+docker-compose down
 
-## 📁 Estructura del Proyecto
+# Parar y eliminar volúmenes
+docker-compose down -v
 
-```
-ensurancePharmacy/
-├── docker-compose.yml          # Orquestación de servicios
-├── docker-start.sh            # Script para iniciar
-├── docker-stop.sh             # Script para detener
-├── README-Docker.md           # Esta documentación
-│
-├── backv4/                    # Backend Java
-│   ├── Dockerfile            # Imagen del backend
-│   ├── .dockerignore         # Archivos excluidos
-│   ├── pom.xml              # Dependencias Maven
-│   ├── pharmacy_db.sqlite   # Base de datos SQLite
-│   └── src/                 # Código fuente Java
-│
-└── ensurance/                 # Frontend Vue.js
-    ├── Dockerfile            # Imagen del frontend
-    ├── .dockerignore         # Archivos excluidos
-    ├── package.json          # Dependencias npm
-    ├── vite.config.ts        # Configuración Vite
-    └── src/                  # Código fuente Vue.js
-```
+# Reconstruir imágenes
+docker-compose up --build
 
-## 🔧 Configuración
-
-### Variables de Entorno
-
-#### Backend (`backv4`)
-- `DB_TYPE=sqlite` - Tipo de base de datos
-- `JAVA_OPTS=-Ddb.type=sqlite` - Opciones JVM
-
-#### Frontend (`ensurance`)
-- `VITE_API_URL=http://backend:8080` - URL del backend
-- `VITE_IP=backend` - IP del backend en Docker
-- `VITE_PORT=9008` - Puerto del frontend
-
-### Puertos
-- **Frontend**: `9008:9008`
-- **Backend**: `8080:8080`
-
-### Red
-- **Nombre**: `ensurance-network`
-- **Driver**: `bridge`
-
-## 🔍 Debugging
-
-### Problemas Comunes
-
-#### 1. Error "docker: command not found"
-```bash
-# Instalar Docker Desktop desde https://docker.com
-```
-
-#### 2. Error "permission denied"
-```bash
-chmod +x docker-start.sh docker-stop.sh
-```
-
-#### 3. Puerto en uso
-```bash
-# Verificar qué está usando el puerto
-lsof -i :8080
-lsof -i :9008
-
-# Cambiar puerto en docker-compose.yml si es necesario
-```
-
-#### 4. Frontend no conecta al backend
-```bash
-# Verificar que el backend esté corriendo
-docker-compose logs backend
-
-# Verificar salud del backend
-curl http://localhost:8080/api/healthcheck
-```
-
-### Logs Detallados
-```bash
-# Logs de todos los servicios
-docker-compose logs
-
-# Logs de construcción
-docker-compose build --progress=plain
-
-# Entrar al contenedor para debugging
-docker-compose exec backend bash
-docker-compose exec frontend sh
-```
-
-## 🔄 Desarrollo
-
-### Hot Reload
-- **Frontend**: ✅ Habilitado (cambios en `src/` se reflejan automáticamente)
-- **Backend**: ❌ Requiere reinicio del contenedor
-
-### Cambios en el código
-
-#### Frontend (automático)
-Los cambios en `ensurance/src/` se reflejan inmediatamente.
-
-#### Backend (manual)
-```bash
-docker-compose restart backend
-```
-
-### Base de Datos
-La base de datos SQLite se persiste en:
-```
-./backv4/pharmacy_db.sqlite
-```
-
-## 🛠️ Comandos de Mantenimiento
-
-### Limpiar todo
-```bash
-# Detener y eliminar contenedores, redes y volúmenes
-docker-compose down --volumes --remove-orphans
-
-# Eliminar también las imágenes
-docker-compose down --rmi all --volumes --remove-orphans
-```
-
-### Actualizar dependencias
-```bash
-# Backend: Actualizar Maven dependencies
-docker-compose exec backend mvn clean install
-
-# Frontend: Actualizar npm dependencies
-docker-compose exec frontend npm install
-```
-
-### Backup de la base de datos
-```bash
-cp backv4/pharmacy_db.sqlite backv4/pharmacy_db.backup.$(date +%Y%m%d_%H%M%S).sqlite
-```
-
-## 📊 Monitoreo
-
-### Estado de los servicios
-```bash
+# Ver estado de contenedores
 docker-compose ps
 ```
 
-### Uso de recursos
+## 🗃️ Base de Datos
+
+- La base de datos SQLite (`pharmacy_db.sqlite`) se monta como volumen
+- Los datos persisten entre reinicios del contenedor
+- Ubicación: `./backv5/pharmacy_db.sqlite`
+
+## 🔧 Configuración
+
+### Backend (backv5)
+- Puerto: 8081
+- Base de datos: SQLite (pharmacy_db.sqlite)
+- Variables de entorno en `.env`
+
+### Frontend (pharmacy)
+- Puerto: 8080
+- Se conecta automáticamente al backend
+- Variables de entorno configuradas para Docker
+
+## 🛠️ Desarrollo
+
+Para desarrollo con recarga automática:
+
 ```bash
-docker stats
+# Backend (requiere Java 21 y Maven localmente)
+cd backv5
+mvn exec:java -Dexec.mainClass=com.sources.app.App
+
+# Frontend (requiere Node.js localmente)
+cd pharmacy
+npm install
+npm run serve
 ```
 
-### Salud del sistema
-```bash
-# Verificar backend
-curl http://localhost:8080/api/healthcheck
+## ❗ Solución de Problemas
 
-# Verificar frontend
-curl http://localhost:9008
-```
+1. **Error "Docker daemon not running"**:
+   - Iniciar Docker Desktop o el servicio de Docker
 
-## 🔐 Seguridad
+2. **Puerto ocupado**:
+   ```bash
+   # Ver qué proceso usa el puerto
+   lsof -i :8080
+   lsof -i :8081
+   
+   # Parar contenedores existentes
+   docker-compose down
+   ```
 
-### Variables sensibles
-Las credenciales están configuradas para desarrollo local. Para producción:
-1. Usar archivos `.env` separados
-2. Configurar secrets de Docker
-3. Implementar SSL/TLS
+3. **Problemas de permisos con SQLite**:
+   ```bash
+   # Verificar permisos del archivo
+   ls -la backv5/pharmacy_db.sqlite
+   
+   # Si es necesario, ajustar permisos
+   chmod 666 backv5/pharmacy_db.sqlite
+   ```
 
-### Red
-Los servicios se comunican a través de una red privada Docker.
-
-## 📝 Notas
-
-1. **Persistencia**: La base de datos SQLite se mantiene entre reinicios
-2. **Desarrollo**: El frontend tiene hot reload habilitado
-3. **Logs**: Se guardan automáticamente y son accesibles via `docker-compose logs`
-4. **Performance**: Para producción, considerar usar imágenes multi-stage builds
-
-## 🆘 Soporte
-
-Si encuentras problemas:
-
-1. Revisa los logs: `docker-compose logs`
-2. Verifica el estado: `docker-compose ps`
-3. Consulta esta documentación
-4. Revisa la configuración en `docker-compose.yml`
-
----
-
-**¡Listo para desarrollar!** 🎉 
+4. **Limpiar todo y empezar de nuevo**:
+   ```bash
+   docker-compose down -v
+   docker system prune -f
+   ./run-all.sh
+   ``` 

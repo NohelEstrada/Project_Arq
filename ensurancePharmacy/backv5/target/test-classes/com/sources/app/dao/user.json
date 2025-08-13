@@ -1,9 +1,0 @@
-{
-  "name": "John Doe",
-  "cui": "123456789",
-  "phone": "555-1234",
-  "email": "john@example.com",
-  "birthDate": "1980-01-01",
-  "address": "123 Main St",
-  "password": "secret"
-}

@@ -2,6 +2,8 @@
 /front/node_modules
 /backv4/.idea/
 /backv4/target/
+/backv5/.idea/
+/backv5/target/
  backv4/target/classes/com/sources/app/
 .idea/
 /.idea/
