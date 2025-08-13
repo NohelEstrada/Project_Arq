@@ -91,11 +91,14 @@ pipeline {
                     dir(env.PROJECT_DIR) {
                         echo "Deploying to ${env.ENVIRONMENT} environment..."
                         
-                        // Stop existing containers for this environment
-                        sh "docker-compose -f ${env.COMPOSE_FILE} down || true"
+                        // Stop and remove existing containers for this environment
+                        sh """
+                            docker-compose -f ${env.COMPOSE_FILE} down --remove-orphans --volumes || true
+                            docker container prune -f || true
+                        """
                         
                         // Build and start new containers
-                        sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build"
+                        sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build --force-recreate"
                         
                         // Wait for services to be ready
                         sh "sleep 30"
