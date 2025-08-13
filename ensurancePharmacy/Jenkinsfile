@@ -1,135 +1,214 @@
 pipeline {
-  agent any
-  tools {
-    nodejs 'NodeJS'          // <-- Global Tool: NodeJS
-  }
-
-  environment {
-    // Nombre del servidor SonarQube que configuraste en Jenkins → System
-    SONARQUBE_SERVER = 'sonarqube'
-    // Direcciones para notificaciones (ajústalas)
-    EMAIL_TO = 'pablopolis2016@gmail.com'
-  }
-
-  options { timestamps() }
-
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    agent any
+    
+    environment {
+        SONAR_SCANNER_HOME = tool 'SonarQube Scanner'
+        SONAR_PROJECT_KEY = 'pharmacy-project'
+        SONAR_PROJECT_NAME = 'Pharmacy Project'
+        LEAD_DEVELOPER_EMAIL = 'lead@company.com'
+        PRODUCT_OWNER_EMAIL = 'productowner@company.com'
     }
-
-    stage('Unit Tests & Coverage (auto-detect)') {
-      steps {
-        sh '''
-          set -e
-          # Frontend (Node) - si existe package.json en ./ensurance o ./front ajusta al path que uses
-          if [ -f "./ensurance/package.json" ]; then
-            echo "[frontend] npm ci && npm test"
-            cd ./ensurance
-            npm ci || true
-            npm test -- --ci || true
-            cd -
-          fi
-
-          # Backend (Node/Java/Python) – intenta detectar:
-          if [ -f "./pharmacy/package.json" ]; then
-            echo "[backend] npm ci && npm test"
-            cd ./pharmacy
-            npm ci || true
-            npm test -- --ci || true
-            cd -
-          elif [ -f "pom.xml" ]; then
-            echo "[backend] mvn -B -DskipTests=false test"
-            mvn -B -DskipTests=false test || true
-          elif [ -f "build.gradle" ] || [ -f "gradlew" ]; then
-            echo "[backend] gradle test"
-            ./gradlew test || true
-          elif [ -f "requirements.txt" ] && command -v pytest >/dev/null 2>&1; then
-            echo "[backend] pytest"
-            pytest || true
-          else
-            echo "No se detectaron tests automáticamente. (OK para primera corrida)"
-          fi
-        '''
-      }
-      post {
-        unsuccessful {
-          emailext to: "${env.EMAIL_TO}",
-                   subject: "❌ Tests fallaron: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                   body: "Revisa la consola: ${env.BUILD_URL}"
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_HASH = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    env.BRANCH_NAME = env.BRANCH_NAME ?: sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                }
+            }
         }
-      }
-    }
-
-    stage('SonarQube Analysis') {
-      steps {
-        withSonarQubeEnv("${SONARQUBE_SERVER}") {
-          // Usa sonar-project.properties en la raíz
-          sh '''
-            if ! command -v sonar-scanner >/dev/null 2>&1; then
-              echo "Instala SonarScanner en Global Tool Config y expórtalo en el PATH"
-              exit 1
-            fi
-            sonar-scanner -Dsonar.projectVersion=${BUILD_NUMBER}
-          '''
+        
+        stage('Determine Environment') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'dev') {
+                        env.ENVIRONMENT = 'development'
+                        env.COMPOSE_FILE = 'docker-compose.dev.yml'
+                        env.FRONTEND_PORT = '8083'
+                        env.BACKEND_PORT = '8084'
+                    } else if (env.BRANCH_NAME == 'uat') {
+                        env.ENVIRONMENT = 'uat'
+                        env.COMPOSE_FILE = 'docker-compose.uat.yml'
+                        env.FRONTEND_PORT = '8090'
+                        env.BACKEND_PORT = '8091'
+                    } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
+                        env.ENVIRONMENT = 'production'
+                        env.COMPOSE_FILE = 'docker-compose.prod.yml'
+                        env.FRONTEND_PORT = '8100'
+                        env.BACKEND_PORT = '8101'
+                    } else {
+                        error "Branch ${env.BRANCH_NAME} is not configured for deployment"
+                    }
+                    echo "Deploying to ${env.ENVIRONMENT} environment using ${env.COMPOSE_FILE}"
+                }
+            }
         }
-      }
-    }
-
-    stage('Quality Gate') {
-      steps {
-        timeout(time: 10, unit: 'MINUTES') {
-          waitForQualityGate abortPipeline: true
+        
+        stage('Unit Tests') {
+            parallel {
+                stage('Backend Tests') {
+                    steps {
+                        dir('backv5') {
+                            sh 'mvn clean test'
+                        }
+                    }
+                    post {
+                        always {
+                            publishTestResults(
+                                testResultsPattern: 'backv5/target/surefire-reports/*.xml',
+                                allowEmptyResults: true
+                            )
+                        }
+                        failure {
+                            script {
+                                sendFailureEmail('Unit Tests', 'Backend unit tests failed')
+                            }
+                        }
+                    }
+                }
+                stage('Frontend Tests') {
+                    steps {
+                        dir('pharmacy') {
+                            sh 'npm install'
+                            sh 'npm test -- --watchAll=false --coverage'
+                        }
+                    }
+                    post {
+                        failure {
+                            script {
+                                sendFailureEmail('Unit Tests', 'Frontend unit tests failed')
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
-      post {
-        unsuccessful {
-          emailext to: "${env.EMAIL_TO}",
-                   subject: "⛔ Quality Gate no aprobado: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                   body: "Se bloquea el merge por incumplir el gate (no nueva deuda técnica). ${env.BUILD_URL}"
+        
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('SonarQube Analysis', 'SonarQube analysis failed')
+                    }
+                }
+            }
         }
-      }
+        
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Quality Gate', 'SonarQube Quality Gate failed - Technical debt not allowed')
+                    }
+                }
+            }
+        }
+        
+        stage('Build and Deploy') {
+            steps {
+                script {
+                    // Stop existing containers for this environment
+                    sh "docker-compose -f ${env.COMPOSE_FILE} down || true"
+                    
+                    // Build and start new containers
+                    sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build"
+                    
+                    // Wait for services to be ready
+                    sh "sleep 30"
+                    
+                    // Health check
+                    sh """
+                        curl -f http://localhost:${env.BACKEND_PORT}/health || exit 1
+                        curl -f http://localhost:${env.FRONTEND_PORT} || exit 1
+                    """
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Deployment', "Deployment to ${env.ENVIRONMENT} failed")
+                    }
+                }
+                success {
+                    script {
+                        sendSuccessEmail()
+                    }
+                }
+            }
+        }
+        
+        stage('Smoke Tests') {
+            steps {
+                sh """
+                    python3 smoke_test.sh ${env.FRONTEND_PORT} ${env.BACKEND_PORT}
+                """
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Smoke Tests', 'Smoke tests failed after deployment')
+                    }
+                }
+            }
+        }
     }
-
-    stage('Deploy DEV (branch dev)') {
-      when { branch 'dev' }
-      steps {
-        sh '''
-          echo "Deploy DEV → backend1/frontend1"
-          docker compose -f docker-compose.ensurance.yaml up -d --build ensurance-db ensurance-backend1 ensurance-frontend1
-        '''
-      }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        failure {
+            script {
+                sendFailureEmail('Pipeline', 'Overall pipeline failed')
+            }
+        }
     }
-
-    stage('Deploy UAT (branch test)') {
-      when { branch 'test' }
-      steps {
-        sh '''
-          echo "Deploy UAT → backend2/frontend2"
-          docker compose -f docker-compose.ensurance.yaml up -d --build ensurance-db ensurance-backend2 ensurance-frontend2
-        '''
-      }
-    }
-
-    stage('Deploy PROD (branch main)') {
-      when { branch 'main' }
-      steps {
-        sh '''
-          echo "Deploy PROD → backend3/frontend3"
-          docker compose -f docker-compose.ensurance.yaml up -d --build ensurance-db ensurance-backend3 ensurance-frontend3
-        '''
-      }
-    }
-  }
-
-  post {
-    success {
-      echo "✅ Pipeline OK"
-    }
-    unsuccessful {
-      emailext to: "${env.EMAIL_TO}",
-               subject: "⚠️ Pipeline fallido: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-               body: "Detalle: ${env.BUILD_URL}"
-    }
-  }
 }
+
+def sendFailureEmail(stageName, message) {
+    emailext (
+        subject: "Pipeline Failed: ${env.JOB_NAME} - ${stageName}",
+        body: """
+            Pipeline failed at stage: ${stageName}
+            
+            Branch: ${env.BRANCH_NAME}
+            Environment: ${env.ENVIRONMENT}
+            Commit: ${env.GIT_COMMIT_HASH}
+            
+            Error: ${message}
+            
+            Build URL: ${env.BUILD_URL}
+        """,
+        to: "${env.LEAD_DEVELOPER_EMAIL}, ${env.PRODUCT_OWNER_EMAIL}"
+    )
+}
+
+def sendSuccessEmail() {
+    emailext (
+        subject: "Deployment Success: ${env.JOB_NAME} - ${env.ENVIRONMENT}",
+        body: """
+            Successful deployment to ${env.ENVIRONMENT}
+            
+            Branch: ${env.BRANCH_NAME}
+            Commit: ${env.GIT_COMMIT_HASH}
+            
+            Frontend: http://localhost:${env.FRONTEND_PORT}
+            Backend: http://localhost:${env.BACKEND_PORT}
+            
+            Build URL: ${env.BUILD_URL}
+        """,
+        to: "${env.LEAD_DEVELOPER_EMAIL}, ${env.PRODUCT_OWNER_EMAIL}"
+    )
+} 

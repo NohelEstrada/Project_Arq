@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend-uat:
+    build: ./backv5
+    container_name: pharmacy-backend-uat
+    ports:
+      - "8091:8081"
+    volumes:
+      - ./backv5/pharmacy_db_uat.sqlite:/app/pharmacy_db.sqlite
+    environment:
+      - PHARMACY_PORT=8081
+      - PHARMACY_API_PREFIX=api2
+      - PHARMACY_ID=1
+      - ENVIRONMENT=uat
+    networks:
+      - pharmacy-network-uat
+
+  frontend-uat:
+    build: ./pharmacy
+    container_name: pharmacy-frontend-uat
+    ports:
+      - "8090:8080"
+    environment:
+      - VUE_APP_API_HOST=localhost
+      - VUE_APP_IP=localhost
+      - VUE_APP_ENVIRONMENT=uat
+    depends_on:
+      - backend-uat
+    networks:
+      - pharmacy-network-uat
+
+networks:
+  pharmacy-network-uat:
+    driver: bridge 
