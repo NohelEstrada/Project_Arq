@@ -5,6 +5,8 @@ pipeline {
         SONAR_SCANNER_HOME = tool 'SonarQube Scanner'
         SONAR_PROJECT_KEY = 'pharmacy-project'
         SONAR_PROJECT_NAME = 'Pharmacy Project'
+        LEAD_DEVELOPER_EMAIL = 'dnestrada@unis.edu.gt'
+        PRODUCT_OWNER_EMAIL = 'jflores@unis.edu.gt'
         PROJECT_DIR = 'ensurancePharmacy'
     }
     
@@ -63,7 +65,9 @@ pipeline {
                             )
                         }
                         failure {
-                            echo "Backend tests failed"
+                            script {
+                                sendFailureEmail('Unit Tests', 'Backend unit tests failed')
+                            }
                         }
                     }
                 }
@@ -76,7 +80,9 @@ pipeline {
                     }
                     post {
                         failure {
-                            echo "Frontend tests failed"
+                            script {
+                                sendFailureEmail('Unit Tests', 'Frontend unit tests failed')
+                            }
                         }
                     }
                 }
@@ -91,12 +97,26 @@ pipeline {
                     }
                 }
             }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('SonarQube Analysis', 'SonarQube analysis failed')
+                    }
+                }
+            }
         }
         
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Quality Gate', 'SonarQube Quality Gate failed - Technical debt not allowed')
+                    }
                 }
             }
         }
@@ -135,15 +155,107 @@ pipeline {
                     }
                 }
             }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Deployment', "Deployment to ${env.ENVIRONMENT} failed")
+                    }
+                }
+                success {
+                    script {
+                        sendSuccessEmail()
+                    }
+                }
+            }
+        }
+        
+        stage('Smoke Tests') {
+            steps {
+                dir(env.PROJECT_DIR) {
+                    sh """
+                        echo "Running smoke tests for ${env.ENVIRONMENT} environment"
+                        curl -f http://localhost:${env.FRONTEND_PORT} || exit 1
+                        echo "Smoke tests passed!"
+                    """
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Smoke Tests', 'Smoke tests failed after deployment')
+                    }
+                }
+            }
         }
     }
     
     post {
         success {
-            echo "Pipeline completed successfully for ${env.ENVIRONMENT} environment!"
+            script {
+                sendSuccessEmail()
+            }
         }
         failure {
-            echo "Pipeline failed for ${env.ENVIRONMENT} environment!"
+            script {
+                sendFailureEmail('Pipeline', 'Overall pipeline failed')
+            }
         }
     }
+}
+
+def sendFailureEmail(stageName, message) {
+    emailext (
+        subject: "🚨 Pipeline Failed: ${env.JOB_NAME} - ${stageName}",
+        body: """
+            <h2>Pipeline Failure Notification</h2>
+            
+            <p><strong>Pipeline failed at stage:</strong> ${stageName}</p>
+            <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
+            <p><strong>Environment:</strong> ${env.ENVIRONMENT}</p>
+            <p><strong>Commit:</strong> ${env.GIT_COMMIT_HASH}</p>
+            
+            <h3>Error Details:</h3>
+            <p>${message}</p>
+            
+            <h3>Action Required:</h3>
+            <p>Please review the code changes and fix the issues before attempting to merge again.</p>
+            
+            <p><strong>Build URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+            
+            <hr>
+            <p><em>This is an automated notification from the CI/CD pipeline.</em></p>
+        """,
+        mimeType: 'text/html',
+        to: "${env.LEAD_DEVELOPER_EMAIL}, ${env.PRODUCT_OWNER_EMAIL}"
+    )
+}
+
+def sendSuccessEmail() {
+    emailext (
+        subject: "✅ Deployment Success: ${env.JOB_NAME} - ${env.ENVIRONMENT}",
+        body: """
+            <h2>Successful Deployment Notification</h2>
+            
+            <p><strong>Successful deployment to:</strong> ${env.ENVIRONMENT}</p>
+            <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
+            <p><strong>Commit:</strong> ${env.GIT_COMMIT_HASH}</p>
+            
+            <h3>Application URLs:</h3>
+            <ul>
+                <li><strong>Frontend:</strong> <a href="http://localhost:${env.FRONTEND_PORT}">http://localhost:${env.FRONTEND_PORT}</a></li>
+                <li><strong>Backend:</strong> <a href="http://localhost:${env.BACKEND_PORT}">http://localhost:${env.BACKEND_PORT}</a></li>
+            </ul>
+            
+            <h3>Quality Reports:</h3>
+            <ul>
+                <li><strong>SonarQube:</strong> <a href="http://localhost:9000/dashboard?id=pharmacy-project">View Code Quality</a></li>
+                <li><strong>Jenkins Build:</strong> <a href="${env.BUILD_URL}">View Build Details</a></li>
+            </ul>
+            
+            <hr>
+            <p><em>This is an automated notification from the CI/CD pipeline.</em></p>
+        """,
+        mimeType: 'text/html',
+        to: "${env.LEAD_DEVELOPER_EMAIL}, ${env.PRODUCT_OWNER_EMAIL}"
+    )
 } 
