@@ -1,0 +1,13 @@
+# Global code owner - Lead Developer
+# All files require approval from the lead developer
+* @NohelEstrada
+
+# Specific protection for critical files
+Jenkinsfile @NohelEstrada
+docker-compose*.yml @NohelEstrada
+sonar-project.properties @NohelEstrada
+ensurancePharmacy/backv5/pom.xml @NohelEstrada
+
+# Branch-specific protection
+# All changes to main branches require lead developer approval
+/.github/ @NohelEstrada 
