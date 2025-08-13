@@ -1,0 +1,10 @@
+target/
+.DS_Store
+*.iml
+.idea/
+.vscode/
+.git/
+.gitignore
+README.md
+Dockerfile
+.dockerignore 

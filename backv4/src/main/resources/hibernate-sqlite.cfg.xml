@@ -27,18 +27,23 @@
 
         <!-- Mapping your entity classes -->
         <mapping class="com.sources.app.entities.User"/>
-        <mapping class="com.sources.app.entities.Bill"/>
-        <mapping class="com.sources.app.entities.BillMedicine"/>
+        <mapping class="com.sources.app.entities.Policy"/>
+        <mapping class="com.sources.app.entities.Appointment"/>
+        <mapping class="com.sources.app.entities.AppointmentMade"/>
         <mapping class="com.sources.app.entities.Category"/>
-        <mapping class="com.sources.app.entities.Comments"/>
+        <mapping class="com.sources.app.entities.ConfigurableAmount"/>
         <mapping class="com.sources.app.entities.Hospital"/>
         <mapping class="com.sources.app.entities.Medicine"/>
-        <mapping class="com.sources.app.entities.MedicineCatSubcat"/>
-        <mapping class="com.sources.app.entities.Orders"/>
-        <mapping class="com.sources.app.entities.OrderMedicine"/>
-        <mapping class="com.sources.app.entities.Policy"/>
+        <mapping class="com.sources.app.entities.MedicinePres"/>
+        <mapping class="com.sources.app.entities.Pharmacy"/>
         <mapping class="com.sources.app.entities.Prescription"/>
-        <mapping class="com.sources.app.entities.PrescriptionMedicine"/>
-        <mapping class="com.sources.app.entities.Subcategory"/>
+        <mapping class="com.sources.app.entities.Service"/>
+        <mapping class="com.sources.app.entities.TotalHospital"/>
+        <mapping class="com.sources.app.entities.TotalPharmacy"/>
+        <mapping class="com.sources.app.entities.Transactions"/>
+        <mapping class="com.sources.app.entities.TransactionPolicy"/>
+        <mapping class="com.sources.app.entities.InsuranceService"/>
+        <mapping class="com.sources.app.entities.HospitalInsuranceService"/>
+        <mapping class="com.sources.app.entities.EnsuranceAppointment"/>
     </session-factory>
-</hibernate-configuration>
+</hibernate-configuration> 

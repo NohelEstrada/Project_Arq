@@ -100,21 +100,48 @@ public class App {
 
         String ip = getLocalExternalIp();
 
-        // Solicitar puerto por consola
-        System.out.println("Ingrese el puerto para iniciar el servidor (predeterminado: 8081): ");
-        java.util.Scanner scanner = new java.util.Scanner(System.in);
-        String portInput = scanner.nextLine().trim();
-        
+        // Obtener puerto desde variable de entorno o usar predeterminado
         int port = 8081; // Puerto predeterminado
-        if (!portInput.isEmpty()) {
+        
+        // Intentar obtener el puerto desde variable de entorno
+        String envPort = System.getenv("PHARMACY_PORT");
+        if (envPort != null && !envPort.trim().isEmpty()) {
             try {
-                port = Integer.parseInt(portInput);
+                port = Integer.parseInt(envPort.trim());
+                System.out.println("Puerto configurado desde variable de entorno: " + port);
             } catch (NumberFormatException e) {
-                System.out.println("Formato de puerto inválido. Se usará el puerto predeterminado 8081.");
+                System.out.println("Formato de puerto inválido en variable de entorno. Se usará el puerto predeterminado 8081.");
             }
+        } else {
+            System.out.println("No se encontró variable de entorno PHARMACY_PORT. Usando puerto predeterminado: " + port);
         }
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(ip, port), 0);
+        // Buscar un puerto disponible comenzando desde el puerto especificado
+        HttpServer server = null;
+        int originalPort = port;
+        int maxAttempts = 100; // Límite de intentos para evitar bucle infinito
+        
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                server = HttpServer.create(new InetSocketAddress(ip, port), 0);
+                System.out.println("Puerto " + port + " disponible y asignado.");
+                break;
+            } catch (java.net.BindException e) {
+                System.out.println("Puerto " + port + " ya está en uso. Probando puerto " + (port + 1) + "...");
+                port++;
+            } catch (Exception e) {
+                System.err.println("Error al crear servidor en puerto " + port + ": " + e.getMessage());
+                port++;
+            }
+        }
+        
+        if (server == null) {
+            throw new RuntimeException("No se pudo encontrar un puerto disponible después de " + maxAttempts + " intentos comenzando desde el puerto " + originalPort);
+        }
+        
+        if (port != originalPort) {
+            System.out.println("NOTA: Se cambió del puerto original " + originalPort + " al puerto " + port + " debido a que el puerto original estaba ocupado.");
+        }
 
         // Asignamos cada contexto con su respectivo Handler usando el prefijo "/api2"
         server.createContext("/api2/login", new LoginHandler(userDAO));
@@ -138,3 +165,4 @@ public class App {
         System.out.println("Servidor iniciado en http://" + ip + ":" + port + "/api2");
     }
 }
+

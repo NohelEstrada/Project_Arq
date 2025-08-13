@@ -93,17 +93,38 @@ public class App {
 
         String ip = getLocalExternalIp();
 
-        // Solicitar puerto por consola
-        System.out.println("Ingrese el puerto para iniciar el servidor (predeterminado: 8080): ");
-        java.util.Scanner scanner = new java.util.Scanner(System.in);
-        String portInput = scanner.nextLine().trim();
-        
+        // Configurar puerto desde variable de entorno o input de consola
         int port = 8080; // Puerto predeterminado
-        if (!portInput.isEmpty()) {
+        
+        // Primero verificar si hay variable de entorno
+        String envPort = System.getenv("SERVER_PORT");
+        if (envPort != null && !envPort.isEmpty()) {
             try {
-                port = Integer.parseInt(portInput);
+                port = Integer.parseInt(envPort);
+                System.out.println("Usando puerto desde variable de entorno SERVER_PORT: " + port);
             } catch (NumberFormatException e) {
-                System.out.println("Formato de puerto inválido. Se usará el puerto predeterminado 8080.");
+                System.out.println("Variable SERVER_PORT inválida. Se usará el puerto predeterminado 8080.");
+            }
+        } else {
+            // Si no hay variable de entorno, intentar leer de consola solo si System.in está disponible
+            try {
+                if (System.in.available() > 0 || System.console() != null) {
+                    System.out.println("Ingrese el puerto para iniciar el servidor (predeterminado: 8080): ");
+                    java.util.Scanner scanner = new java.util.Scanner(System.in);
+                    String portInput = scanner.nextLine().trim();
+                    
+                    if (!portInput.isEmpty()) {
+                        try {
+                            port = Integer.parseInt(portInput);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Formato de puerto inválido. Se usará el puerto predeterminado 8080.");
+                        }
+                    }
+                } else {
+                    System.out.println("No hay consola disponible. Usando puerto predeterminado: " + port);
+                }
+            } catch (Exception e) {
+                System.out.println("Error al leer puerto de consola. Usando puerto predeterminado: " + port);
             }
         }
 
