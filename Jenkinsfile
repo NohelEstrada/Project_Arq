@@ -58,7 +58,7 @@ pipeline {
                     post {
                         always {
                             junit(
-                                testResultsPattern: "${env.PROJECT_DIR}/backv5/target/surefire-reports/*.xml",
+                                testResults: "${env.PROJECT_DIR}/backv5/target/surefire-reports/*.xml",
                                 allowEmptyResults: true
                             )
                         }
