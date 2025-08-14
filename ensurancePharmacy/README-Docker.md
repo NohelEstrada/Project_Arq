@@ -149,3 +149,6 @@ npm run serve
    docker system prune -f
    ./run-all.sh
    ``` 
+
+## Pipeline Testing
+Esta línea fue agregada para probar el flujo completo de CI/CD - Test $(date) 
