@@ -146,20 +146,16 @@ pipeline {
                     dir(env.PROJECT_DIR) {
                         echo "Deploying to ${env.ENVIRONMENT} environment..."
                         
-                        // Aggressive cleanup of Docker containers and networks
+                        // Specific cleanup only for this environment
                         sh """
-                            # Stop all containers for this environment (ignore errors)
+                            # Stop only containers for this specific environment
                             docker-compose -f ${env.COMPOSE_FILE} down --remove-orphans --volumes 2>/dev/null || true
                             
-                            # Remove any lingering containers by name pattern (ignore errors)
-                            docker rm -f \$(docker ps -aq --filter "name=pharmacy-.*-${env.ENVIRONMENT.substring(0,3)}") 2>/dev/null || true
-                            
-                            # Clean up orphaned containers and networks
-                            docker container prune -f 2>/dev/null || true
-                            docker network prune -f 2>/dev/null || true
+                            # Remove only containers specific to this environment
+                            docker rm -f pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} 2>/dev/null || true
                             
                             # Wait a moment for cleanup to complete
-                            sleep 5
+                            sleep 3
                         """
                         
                         // Build and start new containers
