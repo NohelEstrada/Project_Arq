@@ -32,18 +32,21 @@ pipeline {
                         env.FRONTEND_PORT = '8083'
                         env.BACKEND_PORT = '8084'
                         env.DEPLOY = 'true'
+                        env.COMPOSE_PROJECT = 'pharmacy-dev'
                     } else if (env.BRANCH_NAME == 'uat') {
                         env.ENVIRONMENT = 'uat'
                         env.COMPOSE_FILE = 'docker-compose.uat.yml'
                         env.FRONTEND_PORT = '8090'
                         env.BACKEND_PORT = '8091'
                         env.DEPLOY = 'true'
+                        env.COMPOSE_PROJECT = 'pharmacy-uat'
                     } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
                         env.ENVIRONMENT = 'production'
                         env.COMPOSE_FILE = 'docker-compose.prod.yml'
                         env.FRONTEND_PORT = '8100'
                         env.BACKEND_PORT = '8101'
                         env.DEPLOY = 'true'
+                        env.COMPOSE_PROJECT = 'pharmacy-prod'
                     } else {
                         // Feature branches - only run tests and analysis, no deployment
                         env.ENVIRONMENT = 'feature-validation'
@@ -54,6 +57,7 @@ pipeline {
                     
                     if (env.DEPLOY == 'true') {
                         echo "Deploying to ${env.ENVIRONMENT} environment using ${env.COMPOSE_FILE}"
+                        echo "Docker Compose project: ${env.COMPOSE_PROJECT}"
                     }
                 }
             }
@@ -148,8 +152,8 @@ pipeline {
                         
                         // Specific cleanup only for this environment
                         sh """
-                            # Stop only containers for this specific environment
-                            docker-compose -f ${env.COMPOSE_FILE} down --remove-orphans --volumes 2>/dev/null || true
+                            # Stop only containers for this specific environment and project
+                            docker-compose -p ${env.COMPOSE_PROJECT} -f ${env.COMPOSE_FILE} down --remove-orphans --volumes 2>/dev/null || true
                             
                             # Remove only containers specific to this environment
                             docker rm -f pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} 2>/dev/null || true
@@ -158,8 +162,8 @@ pipeline {
                             sleep 3
                         """
                         
-                        // Build and start new containers
-                        sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build --force-recreate"
+                        // Build and start new containers with unique project name
+                        sh "docker-compose -p ${env.COMPOSE_PROJECT} -f ${env.COMPOSE_FILE} up -d --build --force-recreate"
                         
                         // Wait for services to be ready
                         sh "sleep 30"
