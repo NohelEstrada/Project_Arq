@@ -118,6 +118,12 @@ pipeline {
                         sendFailureEmail('Quality Gate', 'SonarQube Quality Gate failed - Technical debt not allowed')
                     }
                 }
+                success {
+                    script {
+                        // Get SonarQube metrics after successful quality gate
+                        env.SONAR_METRICS = getSonarQubeMetrics()
+                    }
+                }
             }
         }
         
@@ -231,31 +237,95 @@ def sendFailureEmail(stageName, message) {
 }
 
 def sendSuccessEmail() {
+    def sonarUrl = "http://localhost:9000/dashboard?id=pharmacy-project"
+    
     emailext (
         subject: "✅ Deployment Success: ${env.JOB_NAME} - ${env.ENVIRONMENT}",
         body: """
-            <h2>Successful Deployment Notification</h2>
+            <h2>🎉 Successful Deployment to ${env.ENVIRONMENT.toUpperCase()}</h2>
             
-            <p><strong>Successful deployment to:</strong> ${env.ENVIRONMENT}</p>
-            <p><strong>Branch:</strong> ${env.BRANCH_NAME}</p>
-            <p><strong>Commit:</strong> ${env.GIT_COMMIT_HASH}</p>
+            <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse;">
+                <tr style="background-color: #f0f0f0;">
+                    <td><strong>Branch:</strong></td>
+                    <td>${env.BRANCH_NAME}</td>
+                </tr>
+                <tr>
+                    <td><strong>Commit:</strong></td>
+                    <td>${env.GIT_COMMIT_HASH}</td>
+                </tr>
+                <tr style="background-color: #f0f0f0;">
+                    <td><strong>Environment:</strong></td>
+                    <td>${env.ENVIRONMENT}</td>
+                </tr>
+                <tr>
+                    <td><strong>Build Number:</strong></td>
+                    <td>${env.BUILD_NUMBER}</td>
+                </tr>
+            </table>
             
-            <h3>Application URLs:</h3>
+            <h3>🌐 Application URLs:</h3>
             <ul>
                 <li><strong>Frontend:</strong> <a href="http://localhost:${env.FRONTEND_PORT}">http://localhost:${env.FRONTEND_PORT}</a></li>
                 <li><strong>Backend:</strong> <a href="http://localhost:${env.BACKEND_PORT}">http://localhost:${env.BACKEND_PORT}</a></li>
             </ul>
             
-            <h3>Quality Reports:</h3>
+            <h3>📊 SonarQube Quality Report:</h3>
+            <div style="background-color: #e8f5e8; padding: 15px; border: 1px solid #4caf50; border-radius: 5px;">
+                <p><strong>🎯 Quality Gate:</strong> <span style="color: green;">PASSED ✅</span></p>
+                <p><strong>🔗 Detailed Report:</strong> <a href="${sonarUrl}">View SonarQube Dashboard</a></p>
+                
+                <h4>📈 Code Quality Metrics:</h4>
+                <div id="sonar-metrics">
+                    <p><em>💡 Click the SonarQube link above to view detailed metrics including:</em></p>
+                    <ul>
+                        <li>Code Coverage Percentage</li>
+                        <li>Lines of Code</li>
+                        <li>Bugs & Vulnerabilities</li>
+                        <li>Code Smells</li>
+                        <li>Maintainability Rating</li>
+                        <li>Reliability Rating</li>
+                        <li>Security Rating</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h3>🧪 Test Results:</h3>
+            <div style="background-color: #e8f4f8; padding: 15px; border: 1px solid #2196f3; border-radius: 5px;">
+                <p><strong>✅ All tests passed successfully</strong></p>
+                <p><strong>📋 Test Report:</strong> <a href="${env.BUILD_URL}testReport/">View Jenkins Test Results</a></p>
+            </div>
+            
+            <h3>🔧 Build Information:</h3>
             <ul>
-                <li><strong>SonarQube:</strong> <a href="http://localhost:9000/dashboard?id=pharmacy-project">View Code Quality</a></li>
                 <li><strong>Jenkins Build:</strong> <a href="${env.BUILD_URL}">View Build Details</a></li>
+                <li><strong>Console Output:</strong> <a href="${env.BUILD_URL}console">View Build Logs</a></li>
+                <li><strong>Build Duration:</strong> Started at ${new Date()}</li>
             </ul>
             
+            <h3>💾 Database Information:</h3>
+            <p><strong>Database File:</strong> pharmacy_db_${env.ENVIRONMENT.substring(0,3)}.sqlite</p>
+            <p><em>Each environment uses its own independent SQLite database.</em></p>
+            
             <hr>
-            <p><em>This is an automated notification from the CI/CD pipeline.</em></p>
+            <p style="color: #666; font-size: 12px;">
+                <em>📧 This is an automated notification from the CI/CD pipeline.<br>
+                🤖 Build triggered by: ${env.BUILD_USER_ID ?: 'System'}<br>
+                ⏰ Notification sent: ${new Date()}</em>
+            </p>
         """,
         mimeType: 'text/html',
         to: "${env.LEAD_DEVELOPER_EMAIL}, ${env.PRODUCT_OWNER_EMAIL}"
     )
+}
+
+def getSonarQubeMetrics() {
+    return script {
+        try {
+            def sonarApi = "http://localhost:9000/api/measures/component?component=pharmacy-project&metricKeys=coverage,lines,bugs,vulnerabilities,code_smells"
+            def response = sh(script: "curl -s '${sonarApi}'", returnStdout: true).trim()
+            return response
+        } catch (Exception e) {
+            return "Unable to fetch SonarQube metrics: ${e.message}"
+        }
+    }
 } 
