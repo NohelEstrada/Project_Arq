@@ -49,7 +49,7 @@
 
         <!-- Botón de inicio de sesión -->
         <button type="submit" class="login-button">
-          Iniciar sesión →
+          Iniciar sesión MAGIC 14 DE AGOSTO DE 2025 - DEV→
         </button>
       </form>
 
