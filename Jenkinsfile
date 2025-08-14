@@ -31,20 +31,30 @@ pipeline {
                         env.COMPOSE_FILE = 'docker-compose.dev.yml'
                         env.FRONTEND_PORT = '8083'
                         env.BACKEND_PORT = '8084'
+                        env.DEPLOY = 'true'
                     } else if (env.BRANCH_NAME == 'uat') {
                         env.ENVIRONMENT = 'uat'
                         env.COMPOSE_FILE = 'docker-compose.uat.yml'
                         env.FRONTEND_PORT = '8090'
                         env.BACKEND_PORT = '8091'
+                        env.DEPLOY = 'true'
                     } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
                         env.ENVIRONMENT = 'production'
                         env.COMPOSE_FILE = 'docker-compose.prod.yml'
                         env.FRONTEND_PORT = '8100'
                         env.BACKEND_PORT = '8101'
+                        env.DEPLOY = 'true'
                     } else {
-                        error "Branch ${env.BRANCH_NAME} is not configured for deployment"
+                        // Feature branches - only run tests and analysis, no deployment
+                        env.ENVIRONMENT = 'feature-validation'
+                        env.DEPLOY = 'false'
+                        echo "Feature branch detected: ${env.BRANCH_NAME}"
+                        echo "Will run tests and SonarQube analysis only (no deployment)"
                     }
-                    echo "Deploying to ${env.ENVIRONMENT} environment using ${env.COMPOSE_FILE}"
+                    
+                    if (env.DEPLOY == 'true') {
+                        echo "Deploying to ${env.ENVIRONMENT} environment using ${env.COMPOSE_FILE}"
+                    }
                 }
             }
         }
@@ -128,6 +138,9 @@ pipeline {
         }
         
         stage('Build and Deploy') {
+            when {
+                environment name: 'DEPLOY', value: 'true'
+            }
             steps {
                 script {
                     dir(env.PROJECT_DIR) {
@@ -176,6 +189,9 @@ pipeline {
         }
         
         stage('Smoke Tests') {
+            when {
+                environment name: 'DEPLOY', value: 'true'
+            }
             steps {
                 dir(env.PROJECT_DIR) {
                     sh """
@@ -198,7 +214,12 @@ pipeline {
     post {
         success {
             script {
-                sendSuccessEmail()
+                if (env.DEPLOY == 'true') {
+                    sendSuccessEmail()
+                } else {
+                    echo "✅ Feature branch validation completed successfully!"
+                    echo "Tests passed and SonarQube analysis completed for ${env.BRANCH_NAME}"
+                }
             }
         }
         failure {
