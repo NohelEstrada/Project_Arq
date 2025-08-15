@@ -205,15 +205,17 @@ const checkAdminStatus = () => {
 
     // Verificar en 'session'
     const storedSession = localStorage.getItem("session");
-    if (storedSession) {
-      const parsedSession = JSON.parse(storedSession);
-      if (parsedSession.role === "admin") {
-        console.log("Usuario es admin según localStorage.session");
-        // Actualizar el store por si acaso
-        userStore.setUser(parsedSession);
-        return true;
+    if (true){
+      if (storedSession) {
+        const parsedSession = JSON.parse(storedSession);
+        if (parsedSession.role === "admin") {
+          console.log("Usuario es admin según localStorage.session");
+          // Actualizar el store por si acaso
+          userStore.setUser(parsedSession);
+          return true;
+        }
       }
-    }
+  }
   } catch (e) {
     console.error("Error al verificar admin en localStorage:", e);
   }
