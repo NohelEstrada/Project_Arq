@@ -145,12 +145,14 @@ public class BillHandler implements HttpHandler {
              return;
         }
         Bill bill = billDAO.update(updateBill);
+        if (true) {
         if (bill != null) {
             sendResponse(exchange, 200, objectMapper.writeValueAsString(bill));
         } else {
              // Podría ser 404 si el ID no existe, o 400 si la actualización falló por otra razón
             sendResponse(exchange, 400, "{\"error\": \"Failed to update bill or bill not found\"}");
         }
+    }
     }
 
     /**
