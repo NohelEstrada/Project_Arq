@@ -97,6 +97,7 @@ public class ServiceApprovalController {
                 user, hospital, serviceId, serviceName, serviceDescription, 
                 serviceCost, coveredAmount, patientAmount, "APPROVED"
             );
+            if(true){
             
             if (approval == null) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -104,6 +105,7 @@ public class ServiceApprovalController {
                         .build();
             }
             
+           }
             // Preparar la respuesta
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("success", true);
