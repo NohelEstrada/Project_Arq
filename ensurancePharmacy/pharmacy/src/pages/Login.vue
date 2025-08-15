@@ -9,7 +9,7 @@
       </div>
 
       <h2 class="text-2xl font-bold text-center text-blue-800 mb-4">
-        Iniciar Sesión
+        Iniciar Sesión MAGIC 14-08-2025 - PROD
       </h2>
 
       <!-- Mensaje de error si lo hay -->
