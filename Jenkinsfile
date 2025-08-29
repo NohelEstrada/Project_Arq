@@ -104,10 +104,42 @@ pipeline {
         }
         
         stage('SonarQube Analysis') {
-            steps {
-                dir(env.PROJECT_DIR) {
-                    withSonarQubeEnv('SonarQube') {
-                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
+            parallel {
+                stage('Backend Analysis') {
+                    steps {
+                        dir("${env.PROJECT_DIR}/backv5") {
+                            withSonarQubeEnv('SonarQube') {
+                                sh """
+                                    ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
+                                    -Dsonar.projectKey=pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} \\
+                                    -Dsonar.projectName="Pharmacy Backend ${env.ENVIRONMENT.capitalize()}" \\
+                                    -Dsonar.sources=src/main/java \\
+                                    -Dsonar.tests=src/test/java \\
+                                    -Dsonar.test.inclusions=**/*Test.java,**/*Tests.java,**/*IT.java \\
+                                    -Dsonar.java.coveragePlugin=jacoco \\
+                                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \\
+                                    -Dsonar.java.binaries=target/classes
+                                """
+                            }
+                        }
+                    }
+                }
+                stage('Frontend Analysis') {
+                    when {
+                        environment name: 'DEPLOY', value: 'true'
+                    }
+                    steps {
+                        dir("${env.PROJECT_DIR}/pharmacy") {
+                            withSonarQubeEnv('SonarQube') {
+                                sh """
+                                    ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
+                                    -Dsonar.projectKey=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} \\
+                                    -Dsonar.projectName="Pharmacy Frontend ${env.ENVIRONMENT.capitalize()}" \\
+                                    -Dsonar.sources=src \\
+                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/**
+                                """
+                            }
+                        }
                     }
                 }
             }
@@ -258,7 +290,8 @@ def sendFailureEmail(stageName, message) {
 }
 
 def sendSuccessEmail() {
-    def sonarUrl = "http://localhost:9000/dashboard?id=pharmacy-project"
+    def backendSonarUrl = "http://localhost:9000/dashboard?id=pharmacy-backend-${env.ENVIRONMENT.substring(0,3)}"
+    def frontendSonarUrl = "http://localhost:9000/dashboard?id=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)}"
     
     emailext (
         subject: "✅ Deployment Success: ${env.JOB_NAME} - ${env.ENVIRONMENT}",
@@ -293,7 +326,8 @@ def sendSuccessEmail() {
             <h3>📊 SonarQube Quality Report:</h3>
             <div style="background-color: #e8f5e8; padding: 15px; border: 1px solid #4caf50; border-radius: 5px;">
                 <p><strong>🎯 Quality Gate:</strong> <span style="color: green;">PASSED ✅</span></p>
-                <p><strong>🔗 Detailed Report:</strong> <a href="${sonarUrl}">View SonarQube Dashboard</a></p>
+                <p><strong>🔗 Backend Report:</strong> <a href="${backendSonarUrl}">View Backend SonarQube</a></p>
+                <p><strong>🔗 Frontend Report:</strong> <a href="${frontendSonarUrl}">View Frontend SonarQube</a></p>
                 
                 <h4>📈 Code Quality Metrics:</h4>
                 <div id="sonar-metrics">
