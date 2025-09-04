@@ -9,7 +9,7 @@
       </div>
 
       <h2 class="text-2xl font-bold text-center text-blue-800 mb-4">
-        Iniciar Sesión MAGIC 14-07-2025 - DEV
+        Iniciar Sesión MAGIC 14-08-2025 - PROD
       </h2>
 
       <!-- Mensaje de error si lo hay -->
@@ -49,7 +49,7 @@
 
         <!-- Botón de inicio de sesión -->
         <button type="submit" class="login-button">
-          Iniciar sesión →
+          Iniciar sesión MAGIC 14 DE AGOSTO DE 2025 - DEV→
         </button>
       </form>
 
