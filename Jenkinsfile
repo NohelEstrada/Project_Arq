@@ -3,8 +3,6 @@ pipeline {
     
     environment {
         SONAR_SCANNER_HOME = tool 'SonarQube Scanner'
-        SONAR_PROJECT_KEY = 'pharmacy-project'
-        SONAR_PROJECT_NAME = 'Pharmacy Project'
         LEAD_DEVELOPER_EMAIL = 'dnestrada@unis.edu.gt'
         PRODUCT_OWNER_EMAIL = 'jflores@unis.edu.gt'
         PROJECT_DIR = 'ensurancePharmacy'
@@ -20,6 +18,19 @@ pipeline {
                     echo "Building branch: ${env.BRANCH_NAME}"
                     echo "Commit: ${env.GIT_COMMIT_HASH}"
                 }
+            }
+        }
+
+        stage('Mark SonarQube as PENDING') {
+            when { 
+                expression { return env.CHANGE_ID != null }
+            }
+            steps {
+                githubNotify credentialsId: 'GITHUB_PAT',
+                            context: 'sonarqube/quality-gate',
+                            status: 'PENDING',
+                            description: 'Running SonarQube analysis',
+                            sha: env.GIT_COMMIT_HASH
             }
         }
         
@@ -154,20 +165,41 @@ pipeline {
         
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                script {
+                    timeout(time: 10, unit: 'MINUTES') {
+                        def gate = waitForQualityGate()
+                        if (gate.status != 'OK') {
+                            // Report FAILURE to GitHub for PRs
+                            if (env.CHANGE_ID) {
+                                githubNotify credentialsId: 'GITHUB_PAT',
+                                            context: 'sonarqube/quality-gate',
+                                            status: 'FAILURE',
+                                            description: "Quality Gate: ${gate.status}",
+                                            sha: env.GIT_COMMIT_HASH
+                            }
+                            error "Quality Gate failed: ${gate.status}"
+                        }
+                    }
                 }
             }
             post {
+                success {
+                    script {
+                        // Report SUCCESS to GitHub for PRs
+                        if (env.CHANGE_ID) {
+                            githubNotify credentialsId: 'GITHUB_PAT',
+                                        context: 'sonarqube/quality-gate',
+                                        status: 'SUCCESS',
+                                        description: 'Quality Gate passed',
+                                        sha: env.GIT_COMMIT_HASH
+                        }
+                        // Get SonarQube metrics after successful quality gate
+                        env.SONAR_METRICS = getSonarQubeMetrics()
+                    }
+                }
                 failure {
                     script {
                         sendFailureEmail('Quality Gate', 'SonarQube Quality Gate failed - Technical debt not allowed')
-                    }
-                }
-                success {
-                    script {
-                        // Get SonarQube metrics after successful quality gate
-                        env.SONAR_METRICS = getSonarQubeMetrics()
                     }
                 }
             }
