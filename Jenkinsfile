@@ -30,7 +30,7 @@ pipeline {
                             context: 'sonarqube/quality-gate',
                             status: 'PENDING',
                             description: 'Running SonarQube analysis',
-                            sha: env.GIT_COMMIT_HASH
+                            sha: sh(script: "git rev-parse HEAD", returnStdout: true).trim()
             }
         }
         
