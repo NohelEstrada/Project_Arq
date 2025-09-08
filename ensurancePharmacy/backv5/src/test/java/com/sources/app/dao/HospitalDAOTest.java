@@ -35,4 +35,33 @@ public class HospitalDAOTest {
         assertNotNull(createdHospital.getIdHospital());
         assertEquals(hospitalFromJson.getName(), createdHospital.getName());
     }
+
+    @Test
+    public void testGetByIdUpdateAndGetAll() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/com/sources/app/dao/hospital.json");
+        assertNotNull(is);
+        Hospital hospitalFromJson = mapper.readValue(is, Hospital.class);
+        // create
+        Hospital created = hospitalDAO.create(
+                hospitalFromJson.getName() + System.currentTimeMillis(),
+                hospitalFromJson.getPhone(),
+                hospitalFromJson.getEmail(),
+                hospitalFromJson.getAddress(),
+                hospitalFromJson.getEnabled()
+        );
+        assertNotNull(created);
+        Long id = created.getIdHospital();
+        assertNotNull(id);
+        // getById
+        Hospital fetched = hospitalDAO.getById(id);
+        assertNotNull(fetched);
+        assertEquals(created.getName(), fetched.getName());
+        // update
+        fetched.setName(fetched.getName() + " Updated");
+        Hospital updated = hospitalDAO.update(fetched);
+        assertNotNull(updated);
+        assertEquals(fetched.getName(), updated.getName());
+        // getAll
+        assertTrue(hospitalDAO.getAll() != null && !hospitalDAO.getAll().isEmpty());
+    }
 }

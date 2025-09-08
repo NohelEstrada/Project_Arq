@@ -10,6 +10,8 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades de enlace {@link OrderMedicine}.
@@ -18,6 +20,8 @@ import java.util.List;
  * Utiliza Hibernate para interacciones con la base de datos y maneja la clave compuesta {@link OrderMedicineId}.
  */
 public class OrderMedicineDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(OrderMedicineDAO.class.getName());
 
     /**
      * Crea una nueva asociación entre un Pedido (Order) y un Medicamento (Medicine) en la base de datos.
@@ -34,19 +38,27 @@ public class OrderMedicineDAO {
         OrderMedicine om = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
+            // Ensure we operate on managed instances within this session to avoid using
+            // detached proxies from other sessions which can lead to closed connection errors.
+            Orders managedOrder = orders != null ? (Orders) session.merge(orders) : null;
+            Medicine managedMedicine = medicine != null ? (Medicine) session.merge(medicine) : null;
 
             om = new OrderMedicine();
-            om.setOrders(orders);
-            om.setMedicine(medicine);
+            om.setOrders(managedOrder);
+            om.setMedicine(managedMedicine);
             om.setQuantity(quantity);
             om.setCost(cost);
             om.setTotal(total);
 
-            session.save(om);
+            session.persist(om);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE,
+                    "Error creating OrderMedicine (ordersPresent=" + (orders != null) +
+                            ", medicinePresent=" + (medicine != null) +
+                            ", quantity=" + quantity + ", cost=" + cost + ", total=" + total + ")",
+                    e);
         }
         return om;
     }
@@ -61,7 +73,7 @@ public class OrderMedicineDAO {
             Query<OrderMedicine> query = session.createQuery("FROM OrderMedicine", OrderMedicine.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching all OrderMedicine records", e);
             return null;
         }
     }
@@ -77,7 +89,7 @@ public class OrderMedicineDAO {
             Transaction tx = session.beginTransaction();
             OrderMedicine om = session.get(OrderMedicine.class, id);
             if (om != null) {
-                session.delete(om);
+                session.remove(om);
                 tx.commit();
                 return true;
             } else {
@@ -85,7 +97,7 @@ public class OrderMedicineDAO {
                 return false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error deleting OrderMedicine by id=" + id, e);
             return false;
         }
     }
@@ -100,7 +112,7 @@ public class OrderMedicineDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(OrderMedicine.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching OrderMedicine by id=" + id, e);
             return null;
         }
     }
@@ -115,12 +127,12 @@ public class OrderMedicineDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(om);
+            session.merge(om);
             tx.commit();
             return om;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating OrderMedicine (present=" + (om != null) + ")", e);
             return null;
         }
     }

@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import com.sources.app.entities.BillMedicineId;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para gestionar las operaciones CRUD de la relación entre facturas y medicamentos (BillMedicine).
@@ -22,7 +24,7 @@ import com.sources.app.entities.BillMedicineId;
 public class BillMedicineHandler implements HttpHandler {
     private final BillMedicineDAO billMedicineDAO;
     private final ObjectMapper objectMapper;
-    private static final String ENDPOINT = "/api2/bill_medicines";
+    private static final Logger LOGGER = Logger.getLogger(BillMedicineHandler.class.getName());
 
     /**
      * Constructor para BillMedicineHandler.
@@ -67,7 +69,7 @@ public class BillMedicineHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Unhandled error in BillMedicineHandler", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

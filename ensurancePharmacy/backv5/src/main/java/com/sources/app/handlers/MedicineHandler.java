@@ -8,7 +8,9 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+ import java.util.List;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para gestionar las operaciones CRUD de los Medicamentos.
@@ -20,6 +22,7 @@ public class MedicineHandler implements HttpHandler {
     private final MedicineDAO medicineDAO;
     private final ObjectMapper objectMapper;
     private static final String ENDPOINT = "/api2/medicines";
+    private static final Logger LOGGER = Logger.getLogger(MedicineHandler.class.getName());
 
     /**
      * Constructor para MedicineHandler.
@@ -76,7 +79,7 @@ public class MedicineHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error handling Medicine request", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

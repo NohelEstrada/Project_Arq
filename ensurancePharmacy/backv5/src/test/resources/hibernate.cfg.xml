@@ -24,6 +24,8 @@
         <mapping class="com.sources.app.entities.Policy"/>
         <mapping class="com.sources.app.entities.Prescription"/>
         <mapping class="com.sources.app.entities.PrescriptionMedicine"/>
+        <mapping class="com.sources.app.entities.ServiceApproval"/>
         <mapping class="com.sources.app.entities.Subcategory"/>
+        <mapping class="com.sources.app.entities.SystemConfig"/>
     </session-factory>
 </hibernate-configuration>

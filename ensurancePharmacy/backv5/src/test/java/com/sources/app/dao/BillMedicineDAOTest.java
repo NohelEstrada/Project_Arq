@@ -55,4 +55,29 @@ public class BillMedicineDAOTest {
         assertEquals(billMedicineFromJson.getTotal(), createdBillMedicine.getTotal(), "El campo total debe coincidir");
         assertEquals(billMedicineFromJson.getQuantity(), createdBillMedicine.getQuantity(), "La cantidad debe coincidir");
     }
+
+    @Test
+    public void testUpdateAndGetAll() throws Exception {
+        // Arrange
+        InputStream is = getClass().getResourceAsStream("/com/sources/app/dao/billMedicine.json");
+        assertNotNull(is, "No se encontró el archivo billMedicine.json");
+        BillMedicine bmJson = mapper.readValue(is, BillMedicine.class);
+        Bill bill = new Bill();
+        Medicine medicine = new Medicine();
+        BillMedicine created = billMedicineDAO.create(
+                bill,
+                medicine,
+                bmJson.getQuantity(),
+                bmJson.getCost(),
+                bmJson.getCopay(),
+                bmJson.getTotal()
+        );
+        assertNotNull(created);
+        // Act - exercise update path (e.g., set same values)
+        created.setQuantity(created.getQuantity());
+        BillMedicine updated = billMedicineDAO.update(created);
+        // Assert
+        assertNotNull(updated);
+        assertTrue(billMedicineDAO.getAll() != null && !billMedicineDAO.getAll().isEmpty());
+    }
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para gestionar las operaciones CRUD de las facturas (Bills).
@@ -19,7 +21,7 @@ import java.util.List;
 public class BillHandler implements HttpHandler {
     private final BillDAO billDAO;
     private final ObjectMapper objectMapper;
-    private static final String ENDPOINT = "/api2/bills";
+    private static final Logger LOGGER = Logger.getLogger(BillHandler.class.getName());
 
     /**
      * Constructor para BillHandler.
@@ -64,7 +66,7 @@ public class BillHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Unhandled error in BillHandler", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

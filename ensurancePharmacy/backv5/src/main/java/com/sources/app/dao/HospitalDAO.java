@@ -7,6 +7,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link Hospital}.
@@ -14,6 +17,8 @@ import java.util.List;
  * en registros de Hospitales utilizando Hibernate para interacciones con la base de datos.
  */
 public class HospitalDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(HospitalDAO.class.getName());
 
     /**
      * Crea un nuevo registro de Hospital en la base de datos.
@@ -38,11 +43,11 @@ public class HospitalDAO {
             hospital.setAddress(address);
             hospital.setEnabled(enabled);
 
-            session.save(hospital);
+            session.persist(hospital);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error creating Hospital (name=" + name + ", email=" + email + ")");
         }
         return hospital;
     }
@@ -57,8 +62,8 @@ public class HospitalDAO {
             Query<Hospital> query = session.createQuery("FROM Hospital", Hospital.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Error fetching all Hospital records", e);
+            return Collections.emptyList();
         }
     }
 
@@ -72,7 +77,7 @@ public class HospitalDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(Hospital.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching Hospital by id=" + id);
             return null;
         }
     }
@@ -87,12 +92,12 @@ public class HospitalDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(hospital);
+            session.merge(hospital);
             tx.commit();
             return hospital;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating Hospital", e);
             return null;
         }
     }

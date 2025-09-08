@@ -9,10 +9,10 @@ import com.sources.app.entities.User;
 import com.sources.app.entities.Medicine;
 
 public class CommentsDAOTest {
-    private CommentsDAO commentsDAO = new CommentsDAO();
-    private UserDAO userDAO = new UserDAO();
-    private MedicineDAO medicineDAO = new MedicineDAO();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final CommentsDAO commentsDAO = new CommentsDAO();
+    private final UserDAO userDAO = new UserDAO();
+    private final MedicineDAO medicineDAO = new MedicineDAO();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void testCreateCommentsFromJsonWithDependencies() throws Exception {
@@ -49,5 +49,51 @@ public class CommentsDAOTest {
         assertNotNull(created);
         assertNotNull(created.getIdComments());
         assertEquals(commentFromJson.getCommentText(), created.getCommentText());
+    }
+
+    @Test
+    public void testGetByIdAndUpdateAndGetAll() throws Exception {
+        // Seed dependencies
+        InputStream userIs = getClass().getResourceAsStream("/com/sources/app/dao/user.json");
+        assertNotNull(userIs);
+        User userFromJson = mapper.readValue(userIs, User.class);
+        userFromJson.setEmail("commentuser+" + System.currentTimeMillis() + "@example.com");
+        User persistedUser = userDAO.create(
+                userFromJson.getName(), userFromJson.getCui(), userFromJson.getPhone(),
+                userFromJson.getEmail(), userFromJson.getBirthDate(), userFromJson.getAddress(),
+                userFromJson.getPassword()
+        );
+        assertNotNull(persistedUser);
+
+        InputStream medIs = getClass().getResourceAsStream("/com/sources/app/dao/medicine.json");
+        assertNotNull(medIs);
+        Medicine medFromJson = mapper.readValue(medIs, Medicine.class);
+        Medicine persistedMedicine = medicineDAO.create(
+                medFromJson.getName(), medFromJson.getActiveMedicament(), medFromJson.getDescription(),
+                medFromJson.getImage(), medFromJson.getConcentration(), medFromJson.getPresentacion(),
+                medFromJson.getStock(), medFromJson.getBrand(), medFromJson.getPrescription(),
+                medFromJson.getPrice(), medFromJson.getSoldUnits()
+        );
+        assertNotNull(persistedMedicine);
+
+        // Create comments
+        Comments created = commentsDAO.create(persistedUser, null, "Texto inicial", persistedMedicine);
+        assertNotNull(created);
+        Long id = created.getIdComments();
+        assertNotNull(id);
+
+        // getById
+        Comments fetched = commentsDAO.getById(id);
+        assertNotNull(fetched);
+        assertEquals("Texto inicial", fetched.getCommentText());
+
+        // update
+        fetched.setCommentText("Texto actualizado");
+        Comments updated = commentsDAO.update(fetched);
+        assertNotNull(updated);
+        assertEquals("Texto actualizado", updated.getCommentText());
+
+        // getAll
+        assertTrue(commentsDAO.getAll() != null && !commentsDAO.getAll().isEmpty());
     }
 }

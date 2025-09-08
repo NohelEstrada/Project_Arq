@@ -1,6 +1,7 @@
 package com.sources.app.entities;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Entidad de enlace que representa un ítem de medicamento dentro de una factura.
@@ -8,6 +9,7 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "BILL_MEDICINE")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BillMedicine {
 
     /** Clave primaria compuesta embebida (ID de factura y ID de medicamento). */
@@ -84,10 +86,12 @@ public class BillMedicine {
 
     public void setBill(Bill bill) {
         this.bill = bill;
-        if (id == null) {
-            id = new BillMedicineId();
+        if (bill != null) {
+            if (id == null) {
+                id = new BillMedicineId();
+            }
+            id.setBillId(bill.getIdBill());
         }
-        id.setBillId(bill.getIdBill());
     }
 
     public Medicine getMedicine() {
@@ -96,10 +100,12 @@ public class BillMedicine {
 
     public void setMedicine(Medicine medicine) {
         this.medicine = medicine;
-        if (id == null) {
-            id = new BillMedicineId();
+        if (medicine != null) {
+            if (id == null) {
+                id = new BillMedicineId();
+            }
+            id.setMedicineId(medicine.getIdMedicine());
         }
-        id.setMedicineId(medicine.getIdMedicine());
     }
 
     public Integer getQuantity() {

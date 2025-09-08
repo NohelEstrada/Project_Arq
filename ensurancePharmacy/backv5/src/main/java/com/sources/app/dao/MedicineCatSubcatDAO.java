@@ -11,6 +11,8 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades de enlace {@link MedicineCatSubcat}.
@@ -19,6 +21,8 @@ import java.util.List;
  * Utiliza Hibernate para interacciones con la base de datos y maneja la clave compuesta {@link MedicineCatSubcatId}.
  */
 public class MedicineCatSubcatDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(MedicineCatSubcatDAO.class.getName());
 
     /**
      * Crea un nuevo registro de asociación que vincula un Medicamento, Categoría y Subcategoría.
@@ -39,11 +43,11 @@ public class MedicineCatSubcatDAO {
             mcs.setCategory(category);
             mcs.setSubcategory(subcategory);
 
-            session.save(mcs);
+            session.persist(mcs);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error creating MedicineCatSubcat link (medicine null=" + (medicine == null) + ", category null=" + (category == null) + ", subcategory null=" + (subcategory == null) + ")", e);
         }
         return mcs;
     }
@@ -58,7 +62,7 @@ public class MedicineCatSubcatDAO {
             Query<MedicineCatSubcat> query = session.createQuery("FROM MedicineCatSubcat", MedicineCatSubcat.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching all MedicineCatSubcat records", e);
             return null;
         }
     }
@@ -73,7 +77,7 @@ public class MedicineCatSubcatDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(MedicineCatSubcat.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching MedicineCatSubcat by id=" + id, e);
             return null;
         }
     }
@@ -91,12 +95,12 @@ public class MedicineCatSubcatDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(mcs);
+            session.merge(mcs);
             tx.commit();
             return mcs;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating MedicineCatSubcat (entity null=" + (mcs == null) + ")", e);
             return null;
         }
     }

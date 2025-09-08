@@ -1,5 +1,6 @@
 package com.sources.app.dao;
 
+import com.sources.app.dto.MedicineCreateRequest;
 import com.sources.app.entities.Medicine;
 import com.sources.app.util.HibernateUtil;
 import org.hibernate.Session;
@@ -7,6 +8,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link Medicine}.
@@ -14,6 +18,8 @@ import java.util.List;
  * que representan los productos farmacéuticos disponibles. Utiliza Hibernate para interacciones con la base de datos.
  */
 public class MedicineDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(MedicineDAO.class.getName());
 
     /**
      * Crea un nuevo registro de Medicamento en la base de datos.
@@ -31,34 +37,44 @@ public class MedicineDAO {
      * @param soldUnits        El número inicial de unidades vendidas (típicamente 0).
      * @return La entidad {@link Medicine} recién creada, o null si ocurrió un error.
      */
-    public Medicine create(String name, String activeMedicament, String description, String image,
-                           String concentration, Double presentacion, Integer stock, String brand,
-                           Boolean prescription, Double price, Integer soldUnits) {
+    public Medicine create(MedicineCreateRequest request) {
         Transaction tx = null;
         Medicine med = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
 
             med = new Medicine();
-            med.setName(name);
-            med.setActiveMedicament(activeMedicament);
-            med.setDescription(description);
-            med.setImage(image);
-            med.setConcentration(concentration);
-            med.setPresentacion(presentacion);
-            med.setStock(stock);
-            med.setBrand(brand);
-            med.setPrescription(prescription);
-            med.setPrice(price);
-            med.setSoldUnits(soldUnits);
+            med.setName(request.getName());
+            med.setActiveMedicament(request.getActiveMedicament());
+            med.setDescription(request.getDescription());
+            med.setImage(request.getImage());
+            med.setConcentration(request.getConcentration());
+            med.setPresentacion(request.getPresentacion());
+            med.setStock(request.getStock());
+            med.setBrand(request.getBrand());
+            med.setPrescription(request.getPrescription());
+            med.setPrice(request.getPrice());
+            med.setSoldUnits(request.getSoldUnits());
 
-            session.save(med);
+            session.persist(med);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error creating Medicine (name=" + request.getName() + ")");
         }
         return med;
+    }
+
+    /**
+     * @deprecated Use {@link #create(MedicineCreateRequest)} instead.
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
+    public Medicine create(String name, String activeMedicament, String description, String image,
+                           String concentration, Double presentacion, Integer stock, String brand,
+                           Boolean prescription, Double price, Integer soldUnits) {
+        MedicineCreateRequest request = new MedicineCreateRequest(name, activeMedicament, description, image,
+                concentration, presentacion, stock, brand, prescription, price, soldUnits);
+        return create(request);
     }
 
     /**
@@ -71,8 +87,8 @@ public class MedicineDAO {
             Query<Medicine> query = session.createQuery("FROM Medicine", Medicine.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Error fetching all Medicine records", e);
+            return Collections.emptyList();
         }
     }
 
@@ -86,7 +102,7 @@ public class MedicineDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(Medicine.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching Medicine by id=" + id);
             return null;
         }
     }
@@ -101,12 +117,12 @@ public class MedicineDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(medicine);
+            session.merge(medicine);
             tx.commit();
             return medicine;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error updating Medicine (id=" + medicine.getIdMedicine() + ")");
             return null;
         }
     }

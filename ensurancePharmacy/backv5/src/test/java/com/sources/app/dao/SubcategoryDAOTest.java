@@ -29,4 +29,27 @@ public class SubcategoryDAOTest {
         assertNotNull(created.getIdSubcategory());
         assertEquals(subFromJson.getName(), created.getName());
     }
+
+    @Test
+    public void testGetByIdAndUpdateAndGetAll() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/com/sources/app/dao/subcategory.json");
+        assertNotNull(is);
+        Subcategory subFromJson = mapper.readValue(is, Subcategory.class);
+        // create
+        Subcategory created = dao.create(subFromJson.getName() + System.currentTimeMillis());
+        assertNotNull(created);
+        Long id = created.getIdSubcategory();
+        assertNotNull(id);
+        // getById
+        Subcategory fetched = dao.getById(id);
+        assertNotNull(fetched);
+        assertEquals(created.getName(), fetched.getName());
+        // update
+        fetched.setName(fetched.getName() + " Updated");
+        Subcategory updated = dao.update(fetched);
+        assertNotNull(updated);
+        assertEquals(fetched.getName(), updated.getName());
+        // getAll not empty
+        assertTrue(dao.getAll() != null && !dao.getAll().isEmpty());
+    }
 }

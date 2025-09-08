@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para obtener una lista de medicamentos en formato XML.
@@ -16,6 +18,7 @@ import java.util.List;
 public class XMLMedicineHandler implements HttpHandler {
     private final MedicineDAO medicineDAO;
     private static final String ENDPOINT = "/api2/medicines-xml";
+    private static final Logger LOGGER = Logger.getLogger(XMLMedicineHandler.class.getName());
 
     /**
      * Constructor para XMLMedicineHandler.
@@ -58,7 +61,7 @@ public class XMLMedicineHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error processing XMLMedicineHandler request", e);
             exchange.sendResponseHeaders(500, -1);
         }
     }

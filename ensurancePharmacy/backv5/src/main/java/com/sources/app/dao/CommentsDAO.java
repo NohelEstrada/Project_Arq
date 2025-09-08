@@ -9,6 +9,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link Comments}.
@@ -17,6 +20,7 @@ import java.util.List;
  * y asociados con un {@link Medicine}. Utiliza Hibernate para interacciones con la base de datos.
  */
 public class CommentsDAO {
+    private static final Logger LOGGER = Logger.getLogger(CommentsDAO.class.getName());
 
     /**
      * Crea un nuevo registro de Comentario en la base de datos.
@@ -39,11 +43,12 @@ public class CommentsDAO {
             comments.setCommentText(commentText);
             comments.setMedicine(medicine);
 
-            session.save(comments);
+            session.persist(comments);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error creating Comments (user present: " + (user != null) + 
+                    ", medicine present: " + (medicine != null) + ")", e);
         }
         return comments;
     }
@@ -58,8 +63,8 @@ public class CommentsDAO {
             Query<Comments> query = session.createQuery("FROM Comments", Comments.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Error fetching all Comments records", e);
+            return Collections.emptyList();
         }
     }
 
@@ -73,7 +78,7 @@ public class CommentsDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(Comments.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching Comments by id: " + id, e);
             return null;
         }
     }
@@ -89,12 +94,12 @@ public class CommentsDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(comments);
+            session.merge(comments);
             tx.commit();
             return comments;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating Comments (entity present: " + (comments != null) + ")", e);
             return null;
         }
     }

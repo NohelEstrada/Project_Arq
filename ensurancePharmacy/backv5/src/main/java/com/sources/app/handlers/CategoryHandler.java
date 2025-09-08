@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para gestionar las operaciones CRUD de las Categorías.
@@ -18,7 +20,7 @@ import java.util.List;
 public class CategoryHandler implements HttpHandler {
     private final CategoryDAO categoryDAO;
     private final ObjectMapper objectMapper;
-    private static final String ENDPOINT = "/api2/categories";
+    private static final Logger LOGGER = Logger.getLogger(CategoryHandler.class.getName());
 
     /**
      * Constructor para CategoryHandler.
@@ -63,7 +65,7 @@ public class CategoryHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error handling Category request", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

@@ -2,6 +2,8 @@ package com.sources.app.entities;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Entidad que representa una factura en la base de datos.
@@ -10,6 +12,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "BILL")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Bill {
 
     /** Identificador único de la factura. Generado automáticamente. */
@@ -185,6 +188,7 @@ public class Bill {
         this.status = status;
     }
 
+    @JsonIgnore
     public Long getId() {
         return idBill;
     }

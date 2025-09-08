@@ -38,4 +38,18 @@ public class MedicineCatSubcatDAOTest {
         assertEquals("Test Category", created.getCategory().getName());
         assertEquals("Test Subcategory", created.getSubcategory().getName());
     }
+
+    @Test
+    public void testUpdateAndGetAll() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/com/sources/app/dao/medicineCatSubcat.json");
+        assertNotNull(is);
+        MedicineCatSubcat mcsJson = mapper.readValue(is, MedicineCatSubcat.class);
+        MedicineCatSubcat created = dao.create(mcsJson.getMedicine(), mcsJson.getCategory(), mcsJson.getSubcategory());
+        assertNotNull(created);
+        // update a no-op to exercise DAO.update path (no additional fields to change safely here)
+        MedicineCatSubcat updated = dao.update(created);
+        assertNotNull(updated);
+        // getAll should contain at least one element
+        assertTrue(dao.getAll() != null && !dao.getAll().isEmpty());
+    }
 }

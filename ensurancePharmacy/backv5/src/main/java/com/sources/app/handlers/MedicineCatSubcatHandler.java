@@ -13,6 +13,8 @@ import java.util.List;
 import com.sources.app.entities.Medicine;
 import com.sources.app.entities.Category;
 import com.sources.app.entities.Subcategory;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
 
 /**
  * HTTP handler for managing CRUD operations on the relationship between
@@ -25,6 +27,7 @@ public class MedicineCatSubcatHandler implements HttpHandler {
     private final MedicineCatSubcatDAO mcsDAO;
     private final ObjectMapper objectMapper;
     private static final String ENDPOINT = "/api2/medicine_catsubcats";
+    private static final Logger LOGGER = Logger.getLogger(MedicineCatSubcatHandler.class.getName());
 
     /**
      * Constructor for MedicineCatSubcatHandler.
@@ -69,7 +72,7 @@ public class MedicineCatSubcatHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error handling MedicineCatSubcat request", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

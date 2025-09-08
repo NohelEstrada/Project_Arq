@@ -7,6 +7,8 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar configuraciones del sistema almacenadas como entidades {@link SystemConfig}.
@@ -14,6 +16,8 @@ import java.util.List;
  * y métodos auxiliares para recuperar valores de configuración con valores predeterminados. Utiliza Hibernate.
  */
 public class SystemConfigDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(SystemConfigDAO.class.getName());
 
     /**
      * Guarda una nueva entrada de configuración o actualiza una existente basada en el configKey.
@@ -29,33 +33,35 @@ public class SystemConfigDAO {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            
-            // Verificar si ya existe la configuración
-            SystemConfig config = getByKey(configKey);
-            
+            // Verificar si ya existe la configuración usando la MISMA sesión
+            Query<SystemConfig> query = session.createQuery(
+                "FROM SystemConfig WHERE configKey = :key", SystemConfig.class);
+            query.setParameter("key", configKey);
+            SystemConfig config = query.uniqueResult();
+
             if (config == null) {
                 // Crear nueva configuración
                 config = new SystemConfig();
                 config.setConfigKey(configKey);
                 config.setConfigValue(configValue);
                 config.setDescription(description);
-                session.save(config);
+                session.persist(config);
             } else {
-                // Actualizar configuración existente
+                // Actualizar configuración existente (la entidad ya está gestionada por 'session')
                 config.setConfigValue(configValue);
                 if (description != null && !description.isEmpty()) {
                     config.setDescription(description);
                 }
-                session.update(config);
+                // No es necesario llamar a merge porque 'config' está adjunta al contexto de persistencia
             }
-            
+
             transaction.commit();
             return config;
         } catch (Exception e) {
             if (transaction != null) {
-                transaction.rollback();
+                try { transaction.rollback(); } catch (Exception __) { /* no-op */ }
             }
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error saving/updating SystemConfig (key=" + configKey + ", value=" + configValue + ", descNull=" + (description == null) + ")");
             return null;
         }
     }
@@ -73,7 +79,7 @@ public class SystemConfigDAO {
             query.setParameter("key", configKey);
             return query.uniqueResult();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching SystemConfig by key=" + configKey);
             return null;
         }
     }
@@ -89,7 +95,7 @@ public class SystemConfigDAO {
                 "FROM SystemConfig ORDER BY configKey", SystemConfig.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching all SystemConfig records");
             return null;
         }
     }
@@ -107,7 +113,7 @@ public class SystemConfigDAO {
             
             SystemConfig config = session.get(SystemConfig.class, idConfig);
             if (config != null) {
-                session.delete(config);
+                session.remove(config);
                 transaction.commit();
                 return true;
             }
@@ -116,7 +122,7 @@ public class SystemConfigDAO {
             if (transaction != null) {
                 transaction.rollback();
             }
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error deleting SystemConfig by id=" + idConfig);
             return false;
         }
     }

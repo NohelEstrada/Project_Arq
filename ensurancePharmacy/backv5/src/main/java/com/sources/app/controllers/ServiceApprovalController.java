@@ -8,14 +8,12 @@ import com.sources.app.entities.Hospital;
 import com.sources.app.entities.Policy;
 import com.sources.app.entities.ServiceApproval;
 import com.sources.app.entities.User;
-import com.sources.app.util.ExternalServiceClient;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,11 +21,23 @@ import java.util.Map;
 @Path("/service-approvals")
 public class ServiceApprovalController {
 
+    // Constants for frequently used literals
+    private static final String KEY_SERVICE_COST = "serviceCost";
+    private static final String STATUS_APPROVED = "APPROVED";
+    private static final String STATUS_REJECTED = "REJECTED";
+    private static final String STATUS_COMPLETED = "COMPLETED";
+    private static final String KEY_SUCCESS = "success";
+    private static final String KEY_APPROVAL_ID = "approvalId";
+    private static final String KEY_APPROVAL_CODE = "approvalCode";
+    private static final String KEY_PRESCRIPTION_ID = "prescriptionId";
+    private static final String KEY_PRESCRIPTION_TOTAL = "prescriptionTotal";
+    private static final String KEY_STATUS = "status";
+    private static final String ERROR_PREFIX = "Error interno al procesar la solicitud: ";
+
     private ServiceApprovalDAO serviceApprovalDAO = new ServiceApprovalDAO();
     private UserDAO userDAO = new UserDAO();
     private HospitalDAO hospitalDAO = new HospitalDAO();
     private SystemConfigDAO systemConfigDAO = new SystemConfigDAO();
-    private ExternalServiceClient externalServiceClient = new ExternalServiceClient();
 
     /**
      * Endpoint para solicitar aprobación de servicio médico
@@ -47,7 +57,7 @@ public class ServiceApprovalController {
             String serviceId = (String) requestData.get("serviceId");
             String serviceName = (String) requestData.get("serviceName");
             String serviceDescription = (String) requestData.get("serviceDescription");
-            Double serviceCost = Double.parseDouble(requestData.get("serviceCost").toString());
+            Double serviceCost = Double.parseDouble(requestData.get(KEY_SERVICE_COST).toString());
             
             // Obtener usuario y hospital
             User user = userDAO.getById(userId);
@@ -92,11 +102,9 @@ public class ServiceApprovalController {
             double coveredAmount = serviceCost * coveragePercentage;
             double patientAmount = serviceCost - coveredAmount;
             
-            // Crear la aprobación del servicio en estado "APPROVED"
             ServiceApproval approval = serviceApprovalDAO.create(
                 user, hospital, serviceId, serviceName, serviceDescription, 
-                serviceCost, coveredAmount, patientAmount, "APPROVED"
-            );
+                serviceCost, coveredAmount, patientAmount, STATUS_APPROVED);
             
             if (approval == null) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -106,10 +114,10 @@ public class ServiceApprovalController {
             
             // Preparar la respuesta
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("success", true);
-            responseData.put("approvalId", approval.getIdApproval());
-            responseData.put("approvalCode", approval.getApprovalCode());
-            responseData.put("serviceCost", serviceCost);
+            responseData.put(KEY_SUCCESS, true);
+            responseData.put(KEY_APPROVAL_ID, approval.getIdApproval());
+            responseData.put(KEY_APPROVAL_CODE, approval.getApprovalCode());
+            responseData.put(KEY_SERVICE_COST, serviceCost);
             responseData.put("coveredAmount", coveredAmount);
             responseData.put("patientAmount", patientAmount);
             responseData.put("approvalDate", approval.getApprovalDate());
@@ -153,7 +161,7 @@ public class ServiceApprovalController {
             }
             
             // Verificar que la aprobación esté en estado APPROVED
-            if (!"APPROVED".equals(approval.getStatus())) {
+            if (!STATUS_APPROVED.equals(approval.getStatus())) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(createErrorResponse("La aprobación de servicio no está en estado válido para agregar receta"))
                         .build();
@@ -165,14 +173,14 @@ public class ServiceApprovalController {
             // Verificar si el monto de la receta es menor al mínimo
             if (prescriptionTotal < minPrescriptionAmount) {
                 // Rechazar la receta y actualizar el estado de la aprobación
-                approval = serviceApprovalDAO.updateStatus(approval.getIdApproval(), "REJECTED", 
+                approval = serviceApprovalDAO.updateStatus(approval.getIdApproval(), STATUS_REJECTED, 
                     "El monto de la receta es menor al mínimo requerido de Q" + minPrescriptionAmount);
                 
                 Map<String, Object> responseData = new HashMap<>();
-                responseData.put("success", false);
-                responseData.put("approvalId", approval.getIdApproval());
-                responseData.put("approvalCode", approval.getApprovalCode());
-                responseData.put("status", "REJECTED");
+                responseData.put(KEY_SUCCESS, false);
+                responseData.put(KEY_APPROVAL_ID, approval.getIdApproval());
+                responseData.put(KEY_APPROVAL_CODE, approval.getApprovalCode());
+                responseData.put(KEY_STATUS, STATUS_REJECTED);
                 responseData.put("rejectionReason", approval.getRejectionReason());
                 
                 return Response.status(Response.Status.OK)
@@ -192,12 +200,12 @@ public class ServiceApprovalController {
             
             // Preparar la respuesta
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("success", true);
-            responseData.put("approvalId", approval.getIdApproval());
-            responseData.put("approvalCode", approval.getApprovalCode());
-            responseData.put("prescriptionId", approval.getPrescriptionId());
-            responseData.put("prescriptionTotal", approval.getPrescriptionTotal());
-            responseData.put("status", approval.getStatus());
+            responseData.put(KEY_SUCCESS, true);
+            responseData.put(KEY_APPROVAL_ID, approval.getIdApproval());
+            responseData.put(KEY_APPROVAL_CODE, approval.getApprovalCode());
+            responseData.put(KEY_PRESCRIPTION_ID, approval.getPrescriptionId());
+            responseData.put(KEY_PRESCRIPTION_TOTAL, approval.getPrescriptionTotal());
+            responseData.put(KEY_STATUS, approval.getStatus());
             
             return Response.status(Response.Status.OK)
                     .entity(responseData)
@@ -277,7 +285,7 @@ public class ServiceApprovalController {
             }
             
             // Verificar que la aprobación esté en estado APPROVED
-            if (!"APPROVED".equals(approval.getStatus())) {
+            if (!STATUS_APPROVED.equals(approval.getStatus())) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(createErrorResponse("La aprobación no está en estado válido para completarla"))
                         .build();
@@ -285,14 +293,14 @@ public class ServiceApprovalController {
             
             // Actualizar el estado a COMPLETED
             approval = serviceApprovalDAO.updateStatus(
-                approval.getIdApproval(), "COMPLETED", null);
+                approval.getIdApproval(), STATUS_COMPLETED, null);
             
             // Preparar la respuesta
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("success", true);
-            responseData.put("approvalId", approval.getIdApproval());
-            responseData.put("approvalCode", approval.getApprovalCode());
-            responseData.put("status", approval.getStatus());
+            responseData.put(KEY_SUCCESS, true);
+            responseData.put(KEY_APPROVAL_ID, approval.getIdApproval());
+            responseData.put(KEY_APPROVAL_CODE, approval.getApprovalCode());
+            responseData.put(KEY_STATUS, approval.getStatus());
             responseData.put("completedDate", approval.getCompletedDate());
             
             return Response.status(Response.Status.OK)

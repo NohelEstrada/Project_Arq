@@ -2,14 +2,11 @@ package com.sources.app.handlers;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.InputStream;
-import java.util.stream.Collectors;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.sources.app.dao.VerificationDAO;
 
 /**
@@ -19,6 +16,7 @@ import com.sources.app.dao.VerificationDAO;
 public class VerificationHandler implements HttpHandler {
     private final VerificationDAO verificationDAO;
     private static final String ENDPOINT = "/api2/verification";
+    private static final Logger LOGGER = Logger.getLogger(VerificationHandler.class.getName());
     
     /**
      * Constructor para VerificationHandler.
@@ -26,6 +24,14 @@ public class VerificationHandler implements HttpHandler {
      */
     public VerificationHandler() {
         this.verificationDAO = new VerificationDAO();
+    }
+    
+    /**
+     * Constructor adicional para inyectar un VerificationDAO (útil para pruebas).
+     * @param verificationDAO instancia a utilizar
+     */
+    public VerificationHandler(VerificationDAO verificationDAO) {
+        this.verificationDAO = verificationDAO;
     }
     
     /**
@@ -75,18 +81,18 @@ public class VerificationHandler implements HttpHandler {
                 return;
             }
             
-            // Log para depuración
-            System.out.println("Email recibido para verificación: " + email);
-            
+            // Logging en lugar de println
+            LOGGER.log(Level.INFO, "Email recibido para verificación: {0}", email);
+
             boolean isVerified = verificationDAO.verifyUser(email);
-            System.out.println("Resultado de verificación: " + isVerified);
-            
+            LOGGER.log(Level.INFO, "Resultado de verificación: {0}", isVerified);
+
             exchange.getResponseHeaders().set("Content-Type", "application/json");
-            String jsonResponse = isVerified ? "1" : "0";
-            byte[] responseBytes = jsonResponse.getBytes();
+            byte[] responseBytes = (isVerified ? "1" : "0").getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(200, responseBytes.length);
-            exchange.getResponseBody().write(responseBytes);
-            exchange.getResponseBody().close();
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(responseBytes);
+            }
             exchange.close();
         } else {
             exchange.sendResponseHeaders(405, -1);

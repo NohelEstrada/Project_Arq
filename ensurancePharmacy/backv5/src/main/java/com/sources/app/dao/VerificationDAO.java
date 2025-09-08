@@ -7,11 +7,15 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para verificar la existencia de usuarios externos basados en el email.
  */
 public class VerificationDAO {
+    
+    private static final Logger LOGGER = Logger.getLogger(VerificationDAO.class.getName());
     
     /**
      * Verifica si existe al menos un usuario con el email proporcionado y el rol 'externo'.
@@ -28,18 +32,17 @@ public class VerificationDAO {
     public boolean verifyUser(String email) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction tx = session.beginTransaction();
-            System.out.println("Buscando usuario con email: " + email);
+            LOGGER.info("Verifying external user existence for email=" + email);
             Query<User> query = session.createQuery("FROM User WHERE email = :email AND role = 'externo'", User.class);
             query.setParameter("email", email);
             List<User> users = query.getResultList();
             if (users.isEmpty()) {
-                System.out.println("Usuario no encontrado");
+                LOGGER.info("External user not found for email=" + email);
                 return false;
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error al verificar el usuario");
+            LOGGER.log(Level.SEVERE, "Error verifying external user by email=" + email, e);
             return false;
         }
     }

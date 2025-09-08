@@ -10,6 +10,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades de enlace {@link BillMedicine}.
@@ -18,6 +21,7 @@ import java.util.List;
  * Utiliza Hibernate para interacciones con la base de datos y maneja la clave compuesta {@link BillMedicineId}.
  */
 public class BillMedicineDAO {
+    private static final Logger LOGGER = Logger.getLogger(BillMedicineDAO.class.getName());
 
     /**
      * Crea una nueva asociación entre una Factura (Bill) y un Medicamento (Medicine) en la base de datos.
@@ -45,12 +49,12 @@ public class BillMedicineDAO {
             billMedicine.setTotal(total);
 
             // La clave compuesta se asigna automáticamente en setBill y setMedicine
-            session.save(billMedicine);
+            session.persist(billMedicine);
 
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error creating BillMedicine", e);
         }
         return billMedicine;
     }
@@ -65,8 +69,8 @@ public class BillMedicineDAO {
             Query<BillMedicine> query = session.createQuery("FROM BillMedicine", BillMedicine.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Error fetching all BillMedicine records", e);
+            return Collections.emptyList();
         }
     }
 
@@ -80,7 +84,7 @@ public class BillMedicineDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(BillMedicine.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching BillMedicine by id: " + id, e);
             return null;
         }
     }
@@ -96,12 +100,12 @@ public class BillMedicineDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(billMedicine);
+            session.merge(billMedicine);
             tx.commit();
             return billMedicine;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating BillMedicine", e);
             return null;
         }
     }

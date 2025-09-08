@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para gestionar las operaciones CRUD de las Prescripciones (Prescription).
@@ -21,6 +23,7 @@ public class PrescriptionHandler implements HttpHandler {
     private final PrescriptionDAO prescriptionDAO;
     private final ObjectMapper objectMapper;
     private static final String ENDPOINT = "/api2/prescriptions";
+    private static final Logger LOGGER = Logger.getLogger(PrescriptionHandler.class.getName());
 
     /**
      * Constructor para PrescriptionHandler.
@@ -65,7 +68,7 @@ public class PrescriptionHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error processing PrescriptionHandler request", e);
             exchange.sendResponseHeaders(500, -1); // Internal Server Error
         }
     }

@@ -10,6 +10,8 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link PrescriptionMedicine}.
@@ -18,6 +20,8 @@ import java.util.List;
  * incluyendo detalles como dosis y frecuencia. Utiliza Hibernate para interacciones con la base de datos.
  */
 public class PrescriptionMedicineDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(PrescriptionMedicineDAO.class.getName());
 
     /**
      * Crea un nuevo registro PrescriptionMedicine en la base de datos.
@@ -44,11 +48,11 @@ public class PrescriptionMedicineDAO {
             pm.setFrecuencia(frecuencia);
             pm.setDuracion(duracion);
 
-            session.save(pm);
+            session.persist(pm);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error creating PrescriptionMedicine (prescriptionNull=" + (prescription == null) + ", medicineNull=" + (medicine == null) + ", dosis=" + dosis + ", frecuencia=" + frecuencia + ", duracion=" + duracion + ")", e);
         }
         return pm;
     }
@@ -63,7 +67,7 @@ public class PrescriptionMedicineDAO {
             Query<PrescriptionMedicine> query = session.createQuery("FROM PrescriptionMedicine", PrescriptionMedicine.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching all PrescriptionMedicine records", e);
             return null;
         }
     }
@@ -73,7 +77,7 @@ public class PrescriptionMedicineDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(PrescriptionMedicine.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching PrescriptionMedicine by composite id=" + id, e);
             return null;
         }
     }
@@ -83,12 +87,12 @@ public class PrescriptionMedicineDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(pm);
+            session.merge(pm);
             tx.commit();
             return pm;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating PrescriptionMedicine (entity null=" + (pm == null) + ")", e);
             return null;
         }
     }

@@ -38,4 +38,21 @@ public class PrescriptionMedicineDAOTest {
         assertEquals(pmJson.getFrecuencia(), created.getFrecuencia());
         assertEquals(pmJson.getDuracion(), created.getDuracion());
     }
+
+    @Test
+    public void testUpdateAndGetAll() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/com/sources/app/dao/prescriptionMedicine.json");
+        assertNotNull(is);
+        PrescriptionMedicine pmJson = mapper.readValue(is, PrescriptionMedicine.class);
+        Prescription prescription = new Prescription();
+        Medicine medicine = new Medicine();
+        PrescriptionMedicine created = dao.create(prescription, medicine, pmJson.getDosis(), pmJson.getFrecuencia(), pmJson.getDuracion());
+        assertNotNull(created);
+        // update a no-op change by setting same values; exercises DAO.update path
+        created.setDuracion(created.getDuracion());
+        PrescriptionMedicine updated = dao.update(created);
+        assertNotNull(updated);
+        // getAll should return non-empty list
+        assertTrue(dao.getAll() != null && !dao.getAll().isEmpty());
+    }
 }

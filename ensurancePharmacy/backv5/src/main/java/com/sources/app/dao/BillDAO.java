@@ -8,6 +8,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link Bill}.
@@ -15,6 +18,8 @@ import java.util.List;
  * que representan facturas asociadas con {@link Prescription}s. Utiliza Hibernate para interacciones con la base de datos.
  */
 public class BillDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(BillDAO.class.getName());
 
     /**
      * Crea un nuevo registro de Factura (Bill) en la base de datos, vinculándolo a una Receta (Prescription).
@@ -40,11 +45,11 @@ public class BillDAO {
             bill.setCopay(copay);
             bill.setTotal(total);
 
-            session.save(bill);
+            session.persist(bill);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to create Bill", e);
         }
         return bill;
     }
@@ -59,8 +64,8 @@ public class BillDAO {
             Query<Bill> query = session.createQuery("FROM Bill", Bill.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Failed to fetch all Bills", e);
+            return Collections.emptyList();
         }
     }
 
@@ -74,7 +79,7 @@ public class BillDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(Bill.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to fetch Bill by id: " + id, e);
             return null;
         }
     }
@@ -95,7 +100,7 @@ public class BillDAO {
             query.setParameter("prescriptionId", prescriptionId);
             return query.uniqueResult();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to fetch Bill by prescriptionId: " + prescriptionId, e);
             return null;
         }
     }
@@ -110,12 +115,12 @@ public class BillDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(bill);
+            session.merge(bill);
             tx.commit();
             return bill;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to update Bill", e);
             return null;
         }
     }

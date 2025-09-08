@@ -1,6 +1,7 @@
 package com.sources.app.dao;
 
 import com.sources.app.entities.User;
+import com.sources.app.dto.UserCreateRequest;
 import com.sources.app.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -8,6 +9,8 @@ import org.hibernate.query.Query;
 
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar entidades {@link User}.
@@ -15,6 +18,8 @@ import java.util.List;
  * (Crear, Leer, Actualizar) utilizando Hibernate.
  */
 public class UserDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(UserDAO.class.getName());
 
     /**
      * Autentica a un usuario basado en su email y contraseña.
@@ -37,52 +42,52 @@ public class UserDAO {
             query.setParameter("password", password);
             return query.uniqueResult(); // Retorna null si no encuentra el usuario
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error during login for email=" + email);
             return null;
         }
     }
 
     /**
      * Crea un nuevo registro de Usuario en la base de datos.
-     * Establece el rol por defecto a "usuario" y el estado habilitado a '1'.
-     * <p>
-     * **Nota de seguridad:** La contraseña se guarda tal como se proporciona. El hashing debe implementarse
-     * aquí o antes de llamar a este método.
-     * </p>
+     * Genera automáticamente valores por defecto para el rol ("usuario") y el estado habilitado ('1').
      *
-     * @param name      El nombre completo del usuario.
-     * @param cui       El CUI (Código Único de Identificación) del usuario.
-     * @param phone     El número de teléfono del usuario.
-     * @param email     La dirección de correo electrónico del usuario (utilizada para iniciar sesión).
-     * @param birthDate La fecha de nacimiento del usuario.
-     * @param address   La dirección física del usuario.
-     * @param password  La contraseña en texto plano del usuario (debería ser hasheada).
+     * @param request El objeto {@link UserCreateRequest} con todos los datos del usuario.
      * @return La entidad {@link User} recién creada, o null si ocurrió un error (p. ej., el email ya existe).
      */
-    public User create(String name, String cui, String phone, String email, Date birthDate, String address, String password) {
+    public User create(UserCreateRequest request) {
         Transaction tx = null;
         User user = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
 
             user = new User();
-            user.setName(name);
-            user.setCui(cui);
-            user.setPhone(phone);
-            user.setEmail(email);
-            user.setBirthDate(birthDate);
-            user.setAddress(address);
-            user.setPassword(password);
+            user.setName(request.getName());
+            user.setCui(request.getCui());
+            user.setPhone(request.getPhone());
+            user.setEmail(request.getEmail());
+            user.setBirthDate(request.getBirthDate());
+            user.setAddress(request.getAddress());
+            user.setPassword(request.getPassword());
             user.setRole("usuario");
             user.setEnabled('1'); // Se usa '1' como Character
 
-            session.save(user);
+            session.persist(user);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error creating User (email=" + request.getEmail() + ")");
         }
         return user;
+    }
+
+    /**
+     * Método de conveniencia para mantener compatibilidad con código existente.
+     * @deprecated Use create(UserCreateRequest) instead
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
+    public User create(String name, String cui, String phone, String email, Date birthDate, String address, String password) {
+        UserCreateRequest request = new UserCreateRequest(name, cui, phone, email, birthDate, address, password);
+        return create(request);
     }
 
     /**
@@ -95,7 +100,7 @@ public class UserDAO {
             Query<User> query = session.createQuery("FROM User", User.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error fetching all User records", e);
             return null;
         }
     }
@@ -110,7 +115,7 @@ public class UserDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(User.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching User by id=" + id);
             return null;
         }
     }
@@ -128,12 +133,12 @@ public class UserDAO {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.update(user);
+            session.merge(user);
             tx.commit();
             return user;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error updating User (id=" + (user != null ? user.getIdUser() : null) + ")");
             return null;
         }
     }

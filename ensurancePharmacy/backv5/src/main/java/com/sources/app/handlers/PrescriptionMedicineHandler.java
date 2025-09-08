@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handler for managing HTTP requests related to prescription medicines.
@@ -35,6 +37,7 @@ public class PrescriptionMedicineHandler implements HttpHandler {
     
     /** The API endpoint path for prescription medicines */
     private static final String ENDPOINT = "/api2/prescription_medicines";
+    private static final Logger LOGGER = Logger.getLogger(PrescriptionMedicineHandler.class.getName());
 
     /**
      * Constructs a new PrescriptionMedicineHandler with the specified DAO.
@@ -133,7 +136,7 @@ public class PrescriptionMedicineHandler implements HttpHandler {
             }
         } catch(Exception e){
             // Log exception and send server error response
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error creating PrescriptionMedicine", e);
             exchange.sendResponseHeaders(500, -1);
         }
     }
@@ -158,7 +161,7 @@ public class PrescriptionMedicineHandler implements HttpHandler {
             }
         } catch(Exception e){
             // Log exception and send server error response
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error retrieving PrescriptionMedicine(s)", e);
             exchange.sendResponseHeaders(500, -1);
         }
     }
@@ -252,7 +255,7 @@ public class PrescriptionMedicineHandler implements HttpHandler {
             }
         } catch(Exception e){
             // Log exception and send server error response
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating PrescriptionMedicine", e);
             exchange.sendResponseHeaders(500, -1);
         }
     }

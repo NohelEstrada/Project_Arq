@@ -2,6 +2,7 @@ package com.sources.app.entities;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Entidad que representa una póliza de seguro o una política de cobertura.
@@ -80,6 +81,7 @@ public class Policy {
         this.expirationDate = expirationDate;
     }
 
+    @JsonIgnore
     public Double getCoveragePercentage() {
         return percentage;
     }

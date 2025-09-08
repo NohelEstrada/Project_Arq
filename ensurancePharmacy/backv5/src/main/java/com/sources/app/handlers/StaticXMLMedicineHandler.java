@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manejador HTTP para servir una lista estática de medicamentos en formato XML.
@@ -19,6 +21,7 @@ public class StaticXMLMedicineHandler implements HttpHandler {
     private static final String ENDPOINT = "/api2/static-medicines-xml";
     private final List<Medicine> medicines;
     private final ObjectMapper objectMapper;
+    private static final Logger LOGGER = Logger.getLogger(StaticXMLMedicineHandler.class.getName());
 
     /**
      * Constructor para StaticXMLMedicineHandler.
@@ -70,7 +73,7 @@ public class StaticXMLMedicineHandler implements HttpHandler {
                 exchange.sendResponseHeaders(405, -1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error processing StaticXMLMedicineHandler request", e);
             exchange.sendResponseHeaders(500, -1);
         }
     }

@@ -9,12 +9,17 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Data Access Object (DAO) para gestionar las operaciones CRUD de la entidad {@link Prescription}.
  * Utiliza Hibernate para interactuar con la base de datos.
  */
 public class PrescriptionDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(PrescriptionDAO.class.getName());
 
     /**
      * Crea una nueva prescripción en la base de datos.
@@ -39,7 +44,7 @@ public class PrescriptionDAO {
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error creating Prescription (hospitalNull=" + (hospital == null) + ", userNull=" + (user == null) + ", approved=" + approved + ")");
         }
         return prescription;
     }
@@ -54,8 +59,8 @@ public class PrescriptionDAO {
             Query<Prescription> query = session.createQuery("FROM Prescription", Prescription.class);
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.log(Level.SEVERE, "Error fetching all Prescription records", e);
+            return Collections.emptyList();
         }
     }
 
@@ -69,7 +74,7 @@ public class PrescriptionDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(Prescription.class, id);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error fetching Prescription by id=" + id);
             return null;
         }
     }
@@ -89,7 +94,7 @@ public class PrescriptionDAO {
             return prescription;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, () -> "Error updating Prescription (id=" + prescription.getIdPrescription() + ")");
             return null;
         }
     }
