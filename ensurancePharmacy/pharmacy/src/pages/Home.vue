@@ -9,7 +9,7 @@
           <button class="icon-btn">📱</button>
         </div>
         <ul class="sidebar-menu">
-          <li>Equipo Médico</li>
+          <li>Equipo Médico TEST DRONE</li>
           <router-link to="/aseguradoras" class="nav-item">Aseguradoras Afiliadas</router-link>
           <li>Canje de puntos</li>
           <li>Pagos</li>
