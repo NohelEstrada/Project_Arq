@@ -115,8 +115,8 @@ steps:
       - docker-compose -f docker-compose.dev.yml up -d --build
       - sleep 30
       - echo "Development deployment completed!"
-      - echo "Frontend: http://localhost:8083"
-      - echo "Backend: http://localhost:8084"
+      - echo "Frontend - http://localhost:8083"
+      - echo "Backend - http://localhost:8084"
     depends_on:
       - quality-gate
     when:
@@ -140,8 +140,8 @@ steps:
       - docker-compose -f docker-compose.uat.yml up -d --build
       - sleep 30
       - echo "UAT deployment completed!"
-      - echo "Frontend: http://localhost:8090"
-      - echo "Backend: http://localhost:8091"
+      - echo "Frontend - http://localhost:8090"
+      - echo "Backend - http://localhost:8091"
     depends_on:
       - quality-gate
     when:
@@ -165,8 +165,8 @@ steps:
       - docker-compose -f docker-compose.prod.yml up -d --build
       - sleep 30
       - echo "Production deployment completed!"
-      - echo "Frontend: http://localhost:8100"
-      - echo "Backend: http://localhost:8101"
+      - echo "Frontend - http://localhost:8100"
+      - echo "Backend - http://localhost:8101"
     depends_on:
       - quality-gate
     when:
@@ -300,20 +300,20 @@ steps:
         Author: {{build.author}}
         
         {{#equal build.branch "dev"}}
-        Frontend: http://localhost:8083
-        Backend: http://localhost:8084
+        Frontend - http://localhost:8083
+        Backend - http://localhost:8084
         {{/equal}}
         {{#equal build.branch "uat"}}
-        Frontend: http://localhost:8090
-        Backend: http://localhost:8091
+        Frontend - http://localhost:8090
+        Backend - http://localhost:8091
         {{/equal}}
         {{#equal build.branch "master"}}
-        Frontend: http://localhost:8100
-        Backend: http://localhost:8101
+        Frontend - http://localhost:8100
+        Backend - http://localhost:8101
         {{/equal}}
         {{#equal build.branch "main"}}
-        Frontend: http://localhost:8100
-        Backend: http://localhost:8101
+        Frontend - http://localhost:8100
+        Backend - http://localhost:8101
         {{/equal}}
         
         Build URL: {{build.link}}
