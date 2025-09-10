@@ -1,0 +1,8 @@
+# Actualiza estas líneas en drone-server-compose.yml:
+
+DRONE_SERVER_HOST: 402ed697efc2.ngrok-free.app
+DRONE_SERVER_PROTO: https
+
+# GitHub OAuth App URLs:
+Homepage URL: https://402ed697efc2.ngrok-free.app
+Authorization callback URL: https://402ed697efc2.ngrok-free.app/login

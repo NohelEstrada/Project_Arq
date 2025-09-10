@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  drone-server:
+    image: drone/drone:2
+    container_name: drone-server
+    ports:
+      - "3000:80"
+    volumes:
+      - drone-data:/data
+    restart: always
+    environment:
+      # GitHub Integration - REPLACE WITH YOUR VALUES
+      DRONE_GITHUB_CLIENT_ID: Ov23lipCrKK9caMIa8xL
+      DRONE_GITHUB_CLIENT_SECRET: 3f5ad61d8ea7862cb1a48c6aef9bec463885a1ed
+      DRONE_RPC_SECRET: b73070e42ca486303aaa6673b8b562cd
+      DRONE_SERVER_HOST: f39c6df92125.ngrok-free.app
+      DRONE_SERVER_PROTO: https
+      
+      # Database (SQLite for simplicity)
+      DRONE_DATABASE_DRIVER: sqlite3
+      DRONE_DATABASE_DATASOURCE: /data/database.sqlite
+      
+      # User settings - REPLACE WITH YOUR GITHUB USERNAME
+      DRONE_USER_CREATE: username:NohelEstrada,admin:true
+      
+      # Logs
+      DRONE_LOGS_DEBUG: "true"
+      DRONE_LOGS_TRACE: "true"
+
+      DRONE_WEBHOOK_SKIP_VERIFY: "false"
+
+  drone-runner:
+    image: drone/drone-runner-docker:1
+    container_name: drone-runner
+    restart: always
+    depends_on:
+      - drone-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DRONE_RPC_PROTO: http
+      DRONE_RPC_HOST: drone-server
+      DRONE_RPC_SECRET: b73070e42ca486303aaa6673b8b562cd  # Same as server
+      DRONE_RUNNER_CAPACITY: 2
+      DRONE_RUNNER_NAME: docker-runner
+      DRONE_LOGS_DEBUG: "true"
+
+volumes:
+  drone-data:
