@@ -110,6 +110,8 @@ steps:
       - docker-compose -f docker-compose.dev.yml down || true
       - docker stop pharmacy-backend-dev pharmacy-frontend-dev || true
       - docker rm pharmacy-backend-dev pharmacy-frontend-dev || true
+      - touch backv5/pharmacy_db_dev.sqlite || true
+      - chmod 666 backv5/pharmacy_db_dev.sqlite || true
       - docker-compose -f docker-compose.dev.yml up -d --build
       - sleep 30
       - echo "Development deployment completed!"
@@ -133,6 +135,8 @@ steps:
       - docker-compose -f docker-compose.uat.yml down || true
       - docker stop pharmacy-backend-uat pharmacy-frontend-uat || true
       - docker rm pharmacy-backend-uat pharmacy-frontend-uat || true
+      - touch backv5/pharmacy_db_uat.sqlite || true
+      - chmod 666 backv5/pharmacy_db_uat.sqlite || true
       - docker-compose -f docker-compose.uat.yml up -d --build
       - sleep 30
       - echo "UAT deployment completed!"
@@ -156,6 +160,8 @@ steps:
       - docker-compose -f docker-compose.prod.yml down || true
       - docker stop pharmacy-backend-prod pharmacy-frontend-prod || true
       - docker rm pharmacy-backend-prod pharmacy-frontend-prod || true
+      - touch backv5/pharmacy_db_prod.sqlite || true
+      - chmod 666 backv5/pharmacy_db_prod.sqlite || true
       - docker-compose -f docker-compose.prod.yml up -d --build
       - sleep 30
       - echo "Production deployment completed!"
