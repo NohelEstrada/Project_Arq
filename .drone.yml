@@ -4,7 +4,7 @@ name: pharmacy-pipeline
 platform:
   os: linux
   arch: arm64
-
+#test
 workspace:
   path: /drone/src
 
