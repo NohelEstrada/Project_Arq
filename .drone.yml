@@ -55,7 +55,7 @@ steps:
           -Dsonar.java.coveragePlugin=jacoco \
           -Dsonar.coverage.jacoco.xmlReportPaths=backv5/target/site/jacoco/jacoco.xml \
           -Dsonar.java.binaries=backv5/target/classes \
-          -Dsonar.host.url=http://localhost:9000 \
+          -Dsonar.host.url=http://host.docker.internal:9000 \
           -Dsonar.token=sqa_462a803ba2044049329e1e655ca728b67e12d24b
     depends_on:
       - backend-tests
@@ -72,7 +72,7 @@ steps:
         
         PROJECT_KEY="pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
         QUALITY_GATE_STATUS=$(curl -s -u "sqa_462a803ba2044049329e1e655ca728b67e12d24b:" \
-          "http://localhost:9000/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" \
+          "http://host.docker.internal:9000/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" \
           | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
         
         echo "Quality Gate Status: ${QUALITY_GATE_STATUS}"
