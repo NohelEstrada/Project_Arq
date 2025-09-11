@@ -21,8 +21,9 @@ COPY src ./src
 # Create default .env file (will be overridden by docker-compose if .env exists)
 RUN echo "# Default environment variables" > .env
 
-# Create SQLite database file if it doesn't exist
-RUN touch pharmacy_db.sqlite
+# Create data directory for SQLite database
+RUN mkdir -p /app/data
+RUN touch /app/data/pharmacy_db.sqlite
 
 # Compile the project
 RUN mvn clean compile -B

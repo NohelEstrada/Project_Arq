@@ -7,7 +7,7 @@ services:
     ports:
       - "8084:8081"
     volumes:
-      - pharmacy_db_dev:/app/pharmacy_db.sqlite
+      - pharmacy_db_dev:/app/data
     environment:
       - PHARMACY_PORT=8081
       - PHARMACY_API_PREFIX=api2
