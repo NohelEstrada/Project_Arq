@@ -137,7 +137,7 @@ steps:
       - docker rm pharmacy-backend-uat pharmacy-frontend-uat || true
       - touch backv5/pharmacy_db_uat.sqlite || true
       - chmod 666 backv5/pharmacy_db_uat.sqlite || true
-      - docker-compose -f docker-compose.uat.yml up -d --build
+      - PWD=$(pwd) docker-compose -f docker-compose.uat.yml up -d --build
       - sleep 30
       - echo "UAT deployment completed!"
       - echo "Frontend - http://localhost:8090"
