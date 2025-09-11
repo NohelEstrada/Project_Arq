@@ -44,8 +44,11 @@ steps:
   # Step 3: SonarQube Analysis
   - name: sonarqube-analysis
     image: sonarsource/sonar-scanner-cli:latest
+    user: root
     commands:
       - cd ensurancePharmacy
+      - chmod 777 . || true
+      - mkdir -p .scannerwork && chmod 777 .scannerwork || true
       - |
         sonar-scanner \
           -Dsonar.projectKey=pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
