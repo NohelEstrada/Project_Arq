@@ -4,7 +4,7 @@ name: pharmacy-pipeline
 platform:
   os: linux
   arch: arm64
-#test
+
 workspace:
   path: /drone/src
 
@@ -49,8 +49,7 @@ steps:
     image: sonarsource/sonar-scanner-cli:latest
     environment:
       SONAR_HOST_URL: http://localhost:9000
-      SONAR_TOKEN:
-        from_secret: sonar_token
+      SONAR_TOKEN: sqa_462a803ba2044049329e1e655ca728b67e12d24b
     commands:
       - cd ensurancePharmacy
       - |
@@ -74,8 +73,7 @@ steps:
     image: curlimages/curl:latest
     environment:
       SONAR_HOST_URL: http://localhost:9000
-      SONAR_TOKEN:
-        from_secret: sonar_token
+      SONAR_TOKEN: sqa_462a803ba2044049329e1e655ca728b67e12d24b
     commands:
       - |
         echo "Waiting for Quality Gate result..."
