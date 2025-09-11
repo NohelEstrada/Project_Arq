@@ -76,7 +76,6 @@ steps:
         PROJECT_KEY="pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
         echo "Checking project: ${PROJECT_KEY}"
         
-        # Get quality gate status
         RESPONSE=$(curl -s -u "sqa_462a803ba2044049329e1e655ca728b67e12d24b:" \
           "http://host.docker.internal:9000/api/qualitygates/project_status?projectKey=${PROJECT_KEY}")
         
@@ -89,7 +88,6 @@ steps:
         if [ "${QUALITY_GATE_STATUS}" != "OK" ]; then
           echo "Quality Gate failed or not found!"
           echo "Skipping Quality Gate check for now..."
-          # exit 1  # Commented out for testing
         else
           echo "Quality Gate passed!"
         fi
@@ -137,7 +135,7 @@ steps:
       - docker rm pharmacy-backend-uat pharmacy-frontend-uat || true
       - touch backv5/pharmacy_db_uat.sqlite || true
       - chmod 666 backv5/pharmacy_db_uat.sqlite || true
-      - PWD=$(pwd) docker-compose -f docker-compose.uat.yml up -d --build
+      - docker-compose -f docker-compose.uat.yml up -d --build
       - sleep 30
       - echo "UAT deployment completed!"
       - echo "Frontend - http://localhost:8090"
@@ -224,25 +222,8 @@ steps:
       branch: [master, main]
       event: [push]
 
-volumes:
-  - name: maven-cache
-    host:
-      path: /tmp/drone-maven-cache
-  - name: node-cache
-    host:
-      path: /tmp/drone-node-cache
-  - name: docker-sock
-    host:
-      path: /var/run/docker.sock
-
----
-# Notification pipeline
-kind: pipeline
-type: docker
-name: notifications
-
-steps:
-  - name: email-notification
+  # Step 11: Email Notification Success
+  - name: email-success
     image: drillster/drone-email
     settings:
       host: smtp.gmail.com
@@ -254,9 +235,9 @@ steps:
       from:
         from_secret: email_from
       to: "dnestrada@unis.edu.gt,jflores@unis.edu.gt"
-      subject: "{{#success build.status}}✅ Deploy exitoso{{else}}❌ Pipeline fallido{{/success}} - {{repo.name}} [{{build.branch}}]"
+      subject: "✅ Deploy exitoso - {{repo.name}} [{{build.branch}}]"
       body: |
-        {{#success build.status}}✅ Deploy completado exitosamente en rama {{build.branch}}.
+        ✅ Deploy completado exitosamente en rama {{build.branch}}.
 
         🎯 Quality Gate: APROBADO
         ✅ Tests: PASADOS  
@@ -268,19 +249,23 @@ steps:
         {{#equal build.branch "dev"}}• Frontend: http://localhost:8083
         • Backend: http://localhost:8084{{/equal}}{{#equal build.branch "uat"}}• Frontend: http://localhost:8090
         • Backend: http://localhost:8091{{/equal}}{{#equal build.branch "master"}}• Frontend: http://localhost:8100
-        • Backend: http://localhost:8101{{/equal}}{{else}}❌ Pipeline falló en rama {{build.branch}}.
-
-        🔗 Detalle: {{build.link}}
-
-        🔍 Para diagnosticar:
-        1. Revisar logs en Drone UI
-        2. Verificar Quality Gate en SonarQube
-        3. Revisar estado de contenedores{{/success}}
+        • Backend: http://localhost:8101{{/equal}}
+    depends_on:
+      - verify-dev
+      - verify-uat
+      - verify-production
     when:
-      status: [success, failure]
+      branch: [dev, uat, master]
+      event: [push]
+      status: [success]
 
-trigger:
-  status: [success, failure]
-
-depends_on:
-  - pharmacy-pipeline
+volumes:
+  - name: maven-cache
+    host:
+      path: /tmp/drone-maven-cache
+  - name: node-cache
+    host:
+      path: /tmp/drone-node-cache
+  - name: docker-sock
+    host:
+      path: /var/run/docker.sock
