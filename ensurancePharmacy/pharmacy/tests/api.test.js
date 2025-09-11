@@ -13,11 +13,11 @@ describe('Pharmacy API', () => {
 
   test('should validate prescription data structure', () => {
     const validatePrescription = (prescription) => {
-      return prescription && 
-             prescription.id && 
-             prescription.medicines && 
-             Array.isArray(prescription.medicines) &&
-             prescription.medicines.length > 0;
+      if (!prescription) return false;
+      return !!(prescription.id && 
+               prescription.medicines && 
+               Array.isArray(prescription.medicines) &&
+               prescription.medicines.length > 0);
     };
 
     const validPrescription = {
@@ -36,5 +36,6 @@ describe('Pharmacy API', () => {
     expect(validatePrescription(validPrescription)).toBe(true);
     expect(validatePrescription(invalidPrescription)).toBe(false);
     expect(validatePrescription(null)).toBe(false);
+    expect(validatePrescription(undefined)).toBe(false);
   });
 });

@@ -51,20 +51,5 @@
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ],
-  "jest": {
-    "testEnvironment": "jsdom",
-    "moduleFileExtensions": ["js", "json", "vue"],
-    "transform": {
-      "^.+\\.js$": "babel-jest",
-      "^.+\\.vue$": "@vue/vue3-jest"
-    },
-    "moduleNameMapping": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "testMatch": [
-      "**/tests/**/*.spec.js",
-      "**/tests/**/*.test.js"
-    ]
-  }
+  ]
 }
