@@ -108,6 +108,8 @@ steps:
       - cd ensurancePharmacy
       - echo "Deploying to Development environment"
       - docker-compose -f docker-compose.dev.yml down || true
+      - docker stop pharmacy-backend-dev pharmacy-frontend-dev || true
+      - docker rm pharmacy-backend-dev pharmacy-frontend-dev || true
       - docker-compose -f docker-compose.dev.yml up -d --build
       - sleep 30
       - echo "Development deployment completed!"
@@ -129,6 +131,8 @@ steps:
       - cd ensurancePharmacy
       - echo "Deploying to UAT environment"
       - docker-compose -f docker-compose.uat.yml down || true
+      - docker stop pharmacy-backend-uat pharmacy-frontend-uat || true
+      - docker rm pharmacy-backend-uat pharmacy-frontend-uat || true
       - docker-compose -f docker-compose.uat.yml up -d --build
       - sleep 30
       - echo "UAT deployment completed!"
@@ -150,6 +154,8 @@ steps:
       - cd ensurancePharmacy
       - echo "Deploying to Production environment"
       - docker-compose -f docker-compose.prod.yml down || true
+      - docker stop pharmacy-backend-prod pharmacy-frontend-prod || true
+      - docker rm pharmacy-backend-prod pharmacy-frontend-prod || true
       - docker-compose -f docker-compose.prod.yml up -d --build
       - sleep 30
       - echo "Production deployment completed!"
