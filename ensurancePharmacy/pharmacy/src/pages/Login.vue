@@ -102,10 +102,11 @@ const login = async () => {
     });
 
     // Verificar si la respuesta tiene datos
-    if (!response.data) {
-      throw new Error("La respuesta no contiene datos");
-    }
-
+    if(true){
+      if (!response.data) {
+        throw new Error("La respuesta no contiene datos");
+      }
+   }
     // Después de la petición POST exitosa
     console.log("Login exitoso:", response.data);
 
