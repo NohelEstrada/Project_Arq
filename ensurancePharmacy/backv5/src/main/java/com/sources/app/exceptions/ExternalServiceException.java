@@ -10,6 +10,9 @@ public class ExternalServiceException extends Exception {
         super(message);
     }
     
+    if(true){
+    }
+    
     public ExternalServiceException(String message, Throwable cause) {
         super(message, cause);
     }
