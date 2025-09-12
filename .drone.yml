@@ -51,7 +51,7 @@ steps:
       - mkdir -p .scannerwork && chmod 777 .scannerwork || true
       - |
         sonar-scanner \
-          -Dsonar.projectKey=pharmacy-fullstack-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
+          -Dsonar.projectKey=pharmacy-frontend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
           -Dsonar.sources=backv5/src/main/java,pharmacy/src \
           -Dsonar.tests=backv5/src/test/java,pharmacy/tests \
           -Dsonar.test.inclusions=**/*Test.java,**/*Tests.java,**/*.test.js,**/*.spec.js \
@@ -75,7 +75,7 @@ steps:
         echo "Waiting for Quality Gate result..."
         sleep 30
         
-        PROJECT_KEY="pharmacy-fullstack-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
+        PROJECT_KEY="pharmacy-frontend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
         echo "Checking project: ${PROJECT_KEY}"
         
         RESPONSE=$(curl -s -u "sqa_462a803ba2044049329e1e655ca728b67e12d24b:" \
