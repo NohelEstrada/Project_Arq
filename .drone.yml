@@ -37,7 +37,7 @@ steps:
     commands:
       - cd ensurancePharmacy/pharmacy
       - npm ci
-      - npm run test || echo "Frontend tests completed"
+      - npm run test -- --coverage || echo "Frontend tests completed"
     when:
       event: [push, pull_request]
 
@@ -51,17 +51,19 @@ steps:
       - mkdir -p .scannerwork && chmod 777 .scannerwork || true
       - |
         sonar-scanner \
-          -Dsonar.projectKey=pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
-          -Dsonar.sources=backv5/src/main/java \
-          -Dsonar.tests=backv5/src/test/java \
-          -Dsonar.test.inclusions=**/*Test.java,**/*Tests.java \
+          -Dsonar.projectKey=pharmacy-fullstack-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
+          -Dsonar.sources=backv5/src/main/java,pharmacy/src \
+          -Dsonar.tests=backv5/src/test/java,pharmacy/tests \
+          -Dsonar.test.inclusions=**/*Test.java,**/*Tests.java,**/*.test.js,**/*.spec.js \
           -Dsonar.java.coveragePlugin=jacoco \
           -Dsonar.coverage.jacoco.xmlReportPaths=backv5/target/site/jacoco/jacoco.xml \
+          -Dsonar.javascript.lcov.reportPaths=pharmacy/coverage/lcov.info \
           -Dsonar.java.binaries=backv5/target/classes \
           -Dsonar.host.url=http://host.docker.internal:9000 \
           -Dsonar.login=sqa_462a803ba2044049329e1e655ca728b67e12d24b
     depends_on:
       - backend-tests
+      - frontend-tests
     when:
       event: [push, pull_request]
 
@@ -73,7 +75,7 @@ steps:
         echo "Waiting for Quality Gate result..."
         sleep 30
         
-        PROJECT_KEY="pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
+        PROJECT_KEY="pharmacy-fullstack-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
         echo "Checking project: ${PROJECT_KEY}"
         
         RESPONSE=$(curl -s -u "sqa_462a803ba2044049329e1e655ca728b67e12d24b:" \
