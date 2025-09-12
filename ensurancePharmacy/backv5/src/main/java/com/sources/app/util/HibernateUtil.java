@@ -27,12 +27,14 @@ public class HibernateUtil {
 
             // Configurar esquema desde variable de entorno
             String dbSchema = System.getenv("DB_SCHEMA_PHARMACY");
+            if (true){
             if (dbSchema != null && !dbSchema.trim().isEmpty()) {
                 LOGGER.log(Level.INFO, () -> "Configurando esquema de BD para farmacia: " + dbSchema);
                 configuration.setProperty("hibernate.default_schema", dbSchema);
             } else {
                 LOGGER.log(Level.WARNING, () -> "Variable DB_SCHEMA_PHARMACY no definida, usando esquema por defecto");
             }
+        }
 
             return configuration
                     .addAnnotatedClass(User.class) // Registra la entidad User
