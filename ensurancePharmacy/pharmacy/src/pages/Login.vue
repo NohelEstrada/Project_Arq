@@ -9,7 +9,7 @@
       </div>
 
       <h2 class="text-2xl font-bold text-center text-blue-800 mb-4">
-        Iniciar Sesión MAGIC 14-07-2025 - UAT 10-09-2025
+        Iniciar Sesión Austin 6:00 11/09
       </h2>
 
       <!-- Mensaje de error si lo hay -->
