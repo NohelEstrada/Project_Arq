@@ -18,12 +18,12 @@ RUN mvn dependency:go-offline -B
 # Copy source code
 COPY src ./src
 
-# Create default .env file (will be overridden by docker-compose if .env exists)
-RUN echo "# Default environment variables" > .env
+# Copy .env file if it exists, otherwise create empty one
+COPY .env* ./
+RUN touch .env
 
-# Create data directory for SQLite database
-RUN mkdir -p /app/data
-RUN touch /app/data/pharmacy_db.sqlite
+# Create SQLite database file if it doesn't exist
+RUN touch pharmacy_db.sqlite
 
 # Compile the project
 RUN mvn clean compile -B

@@ -7,7 +7,7 @@ services:
     ports:
       - "8091:8081"
     volumes:
-      - pharmacy_db_uat:/app/data
+      - ./backv5/pharmacy_db_uat.sqlite:/app/pharmacy_db.sqlite
     environment:
       - PHARMACY_PORT=8081
       - PHARMACY_API_PREFIX=api2
@@ -32,8 +32,4 @@ services:
 
 networks:
   pharmacy-network-uat:
-    driver: bridge
-
-volumes:
-  pharmacy_db_uat:
-    driver: local
+    driver: bridge 
