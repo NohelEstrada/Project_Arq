@@ -81,13 +81,10 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "jenkins_job_duration{job=\"jenkins\"}",
+          "datasource": "Prometheus",
+          "expr": "default_jenkins_builds_last_build_duration_milliseconds / 1000",
           "refId": "A",
-          "legendFormat": "Build Duration"
+          "legendFormat": "{{jenkins_job}} - Duration (s)"
         }
       ],
       "title": "1. Pipeline Build Duration",
@@ -152,11 +149,8 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "rate(jenkins_job_success_count{job=\"jenkins\"}[5m]) / rate(jenkins_job_count_total{job=\"jenkins\"}[5m]) * 100",
+          "datasource": "Prometheus",
+          "expr": "(1 - (sum(default_jenkins_builds_failed_build_count_total) / sum(default_jenkins_builds_duration_milliseconds_summary_count))) * 100",
           "refId": "A"
         }
       ],
@@ -231,13 +225,10 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "jenkins_job_count_total{job=\"jenkins\"}",
+          "datasource": "Prometheus",
+          "expr": "default_jenkins_builds_duration_milliseconds_summary_count",
           "refId": "A",
-          "legendFormat": "Total Builds"
+          "legendFormat": "{{jenkins_job}} - Total Builds"
         }
       ],
       "title": "3. Total Pipeline Executions",
