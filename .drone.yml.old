@@ -1,0 +1,336 @@
+---
+kind: pipeline
+type: docker
+name: pharmacy-pipeline
+platform:
+  os: linux
+  arch: arm64
+
+# Define workspace
+workspace:
+  path: /drone/src
+
+# Environment variables
+environment:
+  SONAR_HOST_URL: http://localhost:9000
+  SONAR_LOGIN:
+    from_secret: sonar_token
+  LEAD_DEVELOPER_EMAIL: dnestrada@unis.edu.gt
+  PRODUCT_OWNER_EMAIL: jflores@unis.edu.gt
+
+# Pipeline steps
+steps:
+  # Step 1: Backend Unit Tests
+  - name: backend-tests
+    image: maven:3.9.4-openjdk-21
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+    commands:
+      - cd ensurancePharmacy/backv5
+      - mvn clean test
+    when:
+      event: [push, pull_request]
+
+  # Step 2: Frontend Unit Tests
+  - name: frontend-tests
+    image: node:18-alpine
+    volumes:
+      - name: node-cache
+        path: /root/.npm
+    commands:
+      - cd ensurancePharmacy/pharmacy
+      - npm ci
+      - npm run test || echo "Frontend tests completed"
+    when:
+      event: [push, pull_request]
+
+  # Step 3: SonarQube Analysis
+  - name: sonarqube-analysis
+    image: sonarsource/sonar-scanner-cli:latest
+    environment:
+      SONAR_HOST_URL: http://localhost:9000
+      SONAR_LOGIN:
+        from_secret: sonar_token
+    commands:
+      - cd ensurancePharmacy
+      - |
+        sonar-scanner \
+          -Dsonar.projectKey=pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}} \
+          -Dsonar.sources=backv5/src/main/java \
+          -Dsonar.tests=backv5/src/test/java \
+          -Dsonar.test.inclusions=**/*Test.java,**/*Tests.java \
+          -Dsonar.java.coveragePlugin=jacoco \
+          -Dsonar.coverage.jacoco.xmlReportPaths=backv5/target/site/jacoco/jacoco.xml \
+          -Dsonar.java.binaries=backv5/target/classes \
+          -Dsonar.host.url=${SONAR_HOST_URL} \
+          -Dsonar.login=${SONAR_LOGIN}
+    depends_on:
+      - backend-tests
+    when:
+      event: [push, pull_request]
+
+  # Step 4: Quality Gate Check
+  - name: quality-gate
+    image: curlimages/curl:latest
+    environment:
+      SONAR_HOST_URL: http://localhost:9000
+      SONAR_LOGIN:
+        from_secret: sonar_token
+    commands:
+      - |
+        echo "Waiting for Quality Gate result..."
+        sleep 30
+        
+        # Get project status from SonarQube
+        PROJECT_KEY="pharmacy-backend-${DRONE_TARGET_BRANCH:-${DRONE_BRANCH}}"
+        QUALITY_GATE_STATUS=$(curl -s -u "${SONAR_LOGIN}:" \
+          "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}" \
+          | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+        
+        echo "Quality Gate Status: ${QUALITY_GATE_STATUS}"
+        
+        if [ "${QUALITY_GATE_STATUS}" != "OK" ]; then
+          echo "Quality Gate failed!"
+          exit 1
+        else
+          echo "Quality Gate passed!"
+        fi
+    depends_on:
+      - sonarqube-analysis
+    when:
+      event: [push, pull_request]
+
+  # Step 5: Build and Deploy - Development
+  - name: deploy-development
+    image: docker/compose:latest
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    environment:
+      COMPOSE_PROJECT_NAME: pharmacy-dev
+      FRONTEND_PORT: 8083
+      BACKEND_PORT: 8084
+    commands:
+      - cd ensurancePharmacy
+      - echo "Deploying to Development environment"
+      - docker-compose -f docker-compose.dev.yml down || true
+      - docker-compose -f docker-compose.dev.yml up -d --build
+      - sleep 30
+      - echo "Development deployment completed!"
+      - echo "Frontend - http://localhost:8083"
+      - echo "Backend - http://localhost:8084"
+    depends_on:
+      - quality-gate
+    when:
+      branch: dev
+      event: [push]
+
+  # Step 6: Build and Deploy - UAT
+  - name: deploy-uat
+    image: docker/compose:latest
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    environment:
+      COMPOSE_PROJECT_NAME: pharmacy-uat
+      FRONTEND_PORT: 8090
+      BACKEND_PORT: 8091
+    commands:
+      - cd ensurancePharmacy
+      - echo "Deploying to UAT environment"
+      - docker-compose -f docker-compose.uat.yml down || true
+      - docker-compose -f docker-compose.uat.yml up -d --build
+      - sleep 30
+      - echo "UAT deployment completed!"
+      - echo "Frontend - http://localhost:8090"
+      - echo "Backend - http://localhost:8091"
+    depends_on:
+      - quality-gate
+    when:
+      branch: uat
+      event: [push]
+
+  # Step 7: Build and Deploy - Production
+  - name: deploy-production
+    image: docker/compose:latest
+    volumes:
+      - name: docker-sock
+        path: /var/run/docker.sock
+    environment:
+      COMPOSE_PROJECT_NAME: pharmacy-prod
+      FRONTEND_PORT: 8100
+      BACKEND_PORT: 8101
+    commands:
+      - cd ensurancePharmacy
+      - echo "Deploying to Production environment"
+      - docker-compose -f docker-compose.prod.yml down || true
+      - docker-compose -f docker-compose.prod.yml up -d --build
+      - sleep 30
+      - echo "Production deployment completed!"
+      - echo "Frontend - http://localhost:8100"
+      - echo "Backend - http://localhost:8101"
+    depends_on:
+      - quality-gate
+    when:
+      branch: [master, main]
+      event: [push]
+
+  # Step 8: Smoke Tests
+  - name: smoke-tests
+    image: curlimages/curl:latest
+    commands:
+      - |
+        if [ "${DRONE_BRANCH}" = "dev" ]; then
+          FRONTEND_PORT=8083
+        elif [ "${DRONE_BRANCH}" = "uat" ]; then
+          FRONTEND_PORT=8090
+        elif [ "${DRONE_BRANCH}" = "master" ] || [ "${DRONE_BRANCH}" = "main" ]; then
+          FRONTEND_PORT=8100
+        else
+          echo "No smoke tests for branch ${DRONE_BRANCH}"
+          exit 0
+        fi
+        
+        echo "Running smoke tests for ${DRONE_BRANCH} environment on port ${FRONTEND_PORT}"
+        sleep 10
+        curl -f "http://localhost:${FRONTEND_PORT}" || exit 1
+        echo "Smoke tests passed!"
+    depends_on:
+      - deploy-development
+      - deploy-uat
+      - deploy-production
+    when:
+      branch: [dev, uat, master, main]
+      event: [push]
+
+# Volumes for caching and Docker socket
+volumes:
+  - name: maven-cache
+    host:
+      path: /tmp/drone-maven-cache
+  - name: node-cache
+    host:
+      path: /tmp/drone-node-cache
+  - name: docker-sock
+    host:
+      path: /var/run/docker.sock
+
+# Trigger configuration
+trigger:
+  branch:
+    - dev
+    - uat
+    - master
+    - main
+  event:
+    - push
+    - pull_request
+
+---
+# Notification pipeline for failures
+kind: pipeline
+type: docker
+name: notifications
+
+steps:
+  - name: notify-failure
+    image: drillster/drone-email
+    settings:
+      host: smtp.gmail.com
+      port: 587
+      username:
+        from_secret: email_username
+      password:
+        from_secret: email_password
+      from:
+        from_secret: email_from
+      to:
+        - dnestrada@unis.edu.gt
+        - jflores@unis.edu.gt
+      subject: "Pipeline Failed: {{repo.name}} - {{build.branch}}"
+      body: |
+        Pipeline failed for repository {{repo.name}}
+        
+        Branch: {{build.branch}}
+        Commit: {{build.commit}}
+        Author: {{build.author}}
+        
+        Build URL: {{build.link}}
+        
+        Please check the build logs for more details.
+
+trigger:
+  status:
+    - failure
+  branch:
+    - dev
+    - uat
+    - master
+    - main
+
+depends_on:
+  - pharmacy-pipeline
+
+---
+# Success notification pipeline
+kind: pipeline
+type: docker
+name: success-notifications
+
+steps:
+  - name: notify-success
+    image: drillster/drone-email
+    settings:
+      host: smtp.gmail.com
+      port: 587
+      username:
+        from_secret: email_username
+      password:
+        from_secret: email_password
+      from:
+        from_secret: email_from
+      to:
+        - dnestrada@unis.edu.gt
+        - jflores@unis.edu.gt
+      subject: "Deployment Success: {{repo.name}} - {{build.branch}}"
+      body: |
+        Successful deployment for repository {{repo.name}}
+        
+        Branch: {{build.branch}}
+        Environment: {{#equal build.branch "dev"}}Development{{/equal}}{{#equal build.branch "uat"}}UAT{{/equal}}{{#equal build.branch "master"}}Production{{/equal}}{{#equal build.branch "main"}}Production{{/equal}}
+        Commit: {{build.commit}}
+        Author: {{build.author}}
+        
+        {{#equal build.branch "dev"}}
+        Frontend - http://localhost:8083
+        Backend - http://localhost:8084
+        {{/equal}}
+        {{#equal build.branch "uat"}}
+        Frontend - http://localhost:8090
+        Backend - http://localhost:8091
+        {{/equal}}
+        {{#equal build.branch "master"}}
+        Frontend - http://localhost:8100
+        Backend - http://localhost:8101
+        {{/equal}}
+        {{#equal build.branch "main"}}
+        Frontend - http://localhost:8100
+        Backend - http://localhost:8101
+        {{/equal}}
+        
+        Build URL: {{build.link}}
+
+trigger:
+  status:
+    - success
+  branch:
+    - dev
+    - uat
+    - master
+    - main
+  event:
+    - push
+
+depends_on:
+  - pharmacy-pipeline
