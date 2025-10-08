@@ -129,10 +129,9 @@ pipeline {
                         environment name: 'DEPLOY', value: 'true'
                     }
                     steps {
-                        dir("${env.PROJECT_DIR}") {
-                            // Re-run tests to ensure coverage is fresh
+                        dir("${env.PROJECT_DIR}/pharmacy") {
+                            // Run tests to generate coverage
                             sh """
-                                cd pharmacy
                                 npm install
                                 npm run test || true
                                 echo "=== Coverage files generated ==="
@@ -141,24 +140,21 @@ pipeline {
                                 head -20 coverage/lcov.info || echo "lcov.info not found"
                                 echo "=== Current directory ==="
                                 pwd
-                                cd ..
-                                echo "=== Parent directory ==="
-                                pwd
-                                echo "=== Verifying path to lcov.info ==="
-                                ls -lh pharmacy/coverage/lcov.info
                             """
+                        }
+                        dir("${env.PROJECT_DIR}/pharmacy") {
                             withSonarQubeEnv('SonarQube') {
                                 sh """
                                     echo "=== Starting SonarQube analysis from directory ==="
                                     pwd
+                                    ls -lh coverage/lcov.info
                                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
                                     -Dsonar.projectKey=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} \\
                                     -Dsonar.projectName="Pharmacy Frontend ${env.ENVIRONMENT.capitalize()}" \\
-                                    -Dsonar.sources=pharmacy/src \\
-                                    -Dsonar.tests=pharmacy/tests \\
+                                    -Dsonar.sources=src \\
+                                    -Dsonar.tests=tests \\
                                     -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/** \\
-                                    -Dsonar.javascript.lcov.reportPaths=pharmacy/coverage/lcov.info \\
-                                    -Dsonar.verbose=true
+                                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
                                 """
                             }
                         }
