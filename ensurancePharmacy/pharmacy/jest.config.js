@@ -5,7 +5,7 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
     '^.+\\.vue$': '@vue/vue3-jest'
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   testMatch: [
