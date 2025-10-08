@@ -129,15 +129,24 @@ pipeline {
                         environment name: 'DEPLOY', value: 'true'
                     }
                     steps {
-                        dir("${env.PROJECT_DIR}/pharmacy") {
+                        dir("${env.PROJECT_DIR}") {
+                            // Re-run tests to ensure coverage is fresh
+                            sh """
+                                cd pharmacy
+                                npm install
+                                npm run test || true
+                                ls -la coverage/
+                                cd ..
+                            """
                             withSonarQubeEnv('SonarQube') {
                                 sh """
                                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
                                     -Dsonar.projectKey=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} \\
                                     -Dsonar.projectName="Pharmacy Frontend ${env.ENVIRONMENT.capitalize()}" \\
-                                    -Dsonar.sources=src \\
-                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \\
-                                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                                    -Dsonar.sources=pharmacy/src \\
+                                    -Dsonar.tests=pharmacy/tests \\
+                                    -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/** \\
+                                    -Dsonar.javascript.lcov.reportPaths=pharmacy/coverage/lcov.info
                                 """
                             }
                         }
