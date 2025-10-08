@@ -135,18 +135,30 @@ pipeline {
                                 cd pharmacy
                                 npm install
                                 npm run test || true
+                                echo "=== Coverage files generated ==="
                                 ls -la coverage/
+                                echo "=== Checking lcov.info content ==="
+                                head -20 coverage/lcov.info || echo "lcov.info not found"
+                                echo "=== Current directory ==="
+                                pwd
                                 cd ..
+                                echo "=== Parent directory ==="
+                                pwd
+                                echo "=== Verifying path to lcov.info ==="
+                                ls -lh pharmacy/coverage/lcov.info
                             """
                             withSonarQubeEnv('SonarQube') {
                                 sh """
+                                    echo "=== Starting SonarQube analysis from directory ==="
+                                    pwd
                                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
                                     -Dsonar.projectKey=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} \\
                                     -Dsonar.projectName="Pharmacy Frontend ${env.ENVIRONMENT.capitalize()}" \\
                                     -Dsonar.sources=pharmacy/src \\
                                     -Dsonar.tests=pharmacy/tests \\
                                     -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/** \\
-                                    -Dsonar.javascript.lcov.reportPaths=pharmacy/coverage/lcov.info
+                                    -Dsonar.javascript.lcov.reportPaths=pharmacy/coverage/lcov.info \\
+                                    -Dsonar.verbose=true
                                 """
                             }
                         }
