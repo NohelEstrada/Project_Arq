@@ -1,41 +1,42 @@
-// Test API service functions
-describe('Pharmacy API', () => {
-  test('should build correct API endpoint URLs', () => {
-    const buildApiUrl = (endpoint, port = 8082) => {
-      const baseUrl = `http://localhost:${port}/api2`;
-      return `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-    };
+// Import real code from the project
+import ApiService from '../src/services/ApiService';
 
-    expect(buildApiUrl('/medicines')).toBe('http://localhost:8082/api2/medicines');
-    expect(buildApiUrl('categories')).toBe('http://localhost:8082/api2/categories');
-    expect(buildApiUrl('/orders', 8091)).toBe('http://localhost:8091/api2/orders');
+describe('ApiService', () => {
+  beforeEach(() => {
+    // Clear localStorage before each test
+    localStorage.clear();
   });
 
-  test('should validate prescription data structure', () => {
-    const validatePrescription = (prescription) => {
-      if (!prescription) return false;
-      return !!(prescription.id && 
-               prescription.medicines && 
-               Array.isArray(prescription.medicines) &&
-               prescription.medicines.length > 0);
-    };
+  test('should build pharmacy API URLs correctly', () => {
+    const url = ApiService.getPharmacyApiUrl('medicines');
+    expect(url).toContain('8081');
+    expect(url).toContain('/api2/medicines');
+    expect(url).toMatch(/http:\/\/.*:8081\/api2\/medicines/);
+  });
 
-    const validPrescription = {
-      id: 'RX001',
-      medicines: [
-        { name: 'Acetaminofen', quantity: 2 },
-        { name: 'Ibuprofeno', quantity: 1 }
-      ]
-    };
+  test('should build ensurance API URLs correctly', () => {
+    const url = ApiService.getEnsuranceApiUrl('policies');
+    expect(url).toContain('8080');
+    expect(url).toContain('/api2/policies');
+    expect(url).toMatch(/http:\/\/.*:8080\/api2\/policies/);
+  });
 
-    const invalidPrescription = {
-      id: 'RX002',
-      medicines: []
-    };
+  test('should handle endpoints with leading slash', () => {
+    const url1 = ApiService.getPharmacyApiUrl('/categories');
+    const url2 = ApiService.getPharmacyApiUrl('categories');
+    expect(url1).toBe(url2);
+  });
 
-    expect(validatePrescription(validPrescription)).toBe(true);
-    expect(validatePrescription(invalidPrescription)).toBe(false);
-    expect(validatePrescription(null)).toBe(false);
-    expect(validatePrescription(undefined)).toBe(false);
+  test('should configure custom API ports', () => {
+    ApiService.configureApiPorts({
+      pharmacy: '9001',
+      ensurance: '9002'
+    });
+    
+    const pharmacyUrl = ApiService.getPharmacyApiUrl('test');
+    const ensuranceUrl = ApiService.getEnsuranceApiUrl('test');
+    
+    expect(pharmacyUrl).toContain('9001');
+    expect(ensuranceUrl).toContain('9002');
   });
 });

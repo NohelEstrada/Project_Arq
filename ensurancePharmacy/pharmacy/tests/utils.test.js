@@ -1,27 +1,36 @@
-// Test utilities and helper functions
-describe('Pharmacy Utils', () => {
-  test('should validate email format correctly', () => {
-    const validateEmail = (email) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    };
+// Import real code from the project
+import { authService } from '../src/services/authService';
 
-    expect(validateEmail('user@example.com')).toBe(true);
-    expect(validateEmail('invalid-email')).toBe(false);
-    expect(validateEmail('test@unis.edu.gt')).toBe(true);
-    expect(validateEmail('')).toBe(false);
+describe('authService', () => {
+  beforeEach(() => {
+    // Clear localStorage before each test
+    localStorage.clear();
   });
 
-  test('should format currency correctly', () => {
-    const formatCurrency = (amount) => {
-      return new Intl.NumberFormat('es-GT', {
-        style: 'currency',
-        currency: 'GTQ'
-      }).format(amount);
-    };
+  test('should logout and clear localStorage', () => {
+    // Set some user data
+    localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Test User' }));
+    
+    // Call logout
+    authService.logout();
+    
+    // Verify localStorage is cleared
+    expect(localStorage.getItem('user')).toBeNull();
+  });
 
-    expect(formatCurrency(100)).toContain('100');
-    expect(formatCurrency(1500.50)).toContain('1,500.50');
-    expect(formatCurrency(0)).toContain('0');
+  test('should get current user from localStorage', () => {
+    const testUser = { id: 1, name: 'Test User', role: 'admin' };
+    localStorage.setItem('user', JSON.stringify(testUser));
+    
+    const user = authService.getCurrentUser();
+    
+    expect(user).toEqual(testUser);
+    expect(user.id).toBe(1);
+    expect(user.role).toBe('admin');
+  });
+
+  test('should return null when no user is stored', () => {
+    const user = authService.getCurrentUser();
+    expect(user).toBeNull();
   });
 });
