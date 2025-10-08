@@ -1,0 +1,46 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'pharmacy-monitor'
+    environment: 'production'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'pharmacy-server'
+
+  # Jenkins Metrics
+  - job_name: 'jenkins'
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          instance: 'jenkins-master'
+
+  # Backend Application Metrics
+  - job_name: 'pharmacy-backend'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['backend-prod:8081']
+        labels:
+          application: 'pharmacy-backend'
+          environment: 'production'
+
+  # SonarQube Metrics
+  - job_name: 'sonarqube'
+    metrics_path: '/api/monitoring/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:9000']
+        labels:
+          instance: 'sonarqube'
+
