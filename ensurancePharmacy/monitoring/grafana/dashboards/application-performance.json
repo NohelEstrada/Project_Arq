@@ -10,10 +10,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -73,10 +70,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -136,10 +130,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -210,23 +201,17 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "rate(http_server_requests_seconds_count{application=\"pharmacy-backend\"}[5m])",
+          "datasource": "Prometheus",
+          "expr": "rate(node_network_receive_bytes_total[1m]) * 8 / 1000000",
           "refId": "A",
-          "legendFormat": "{{method}} {{uri}}"
+          "legendFormat": "{{device}} - Received (Mbps)"
         }
       ],
-      "title": "3. HTTP Request Rate",
+      "title": "3. Network Throughput (Mbps)",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -305,23 +290,17 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"pharmacy-backend\"}[5m])) by (le, uri)) * 1000",
+          "datasource": "Prometheus",
+          "expr": "rate(node_disk_read_bytes_total[1m]) / 1024 / 1024",
           "refId": "A",
-          "legendFormat": "{{uri}} (p95)"
+          "legendFormat": "{{device}} - Read (MB/s)"
         }
       ],
-      "title": "4. Response Time (95th percentile)",
+      "title": "4. Disk I/O Read Rate (MB/s)",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -397,10 +376,7 @@
           "legendFormat": "Received"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
+          "datasource": "Prometheus",
           "expr": "rate(node_network_transmit_bytes_total[5m])",
           "refId": "B",
           "legendFormat": "Transmitted"
