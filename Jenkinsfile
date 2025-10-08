@@ -136,7 +136,8 @@ pipeline {
                                     -Dsonar.projectKey=pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} \\
                                     -Dsonar.projectName="Pharmacy Frontend ${env.ENVIRONMENT.capitalize()}" \\
                                     -Dsonar.sources=src \\
-                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/**
+                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \\
+                                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
                                 """
                             }
                         }
