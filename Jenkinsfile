@@ -206,7 +206,7 @@ pipeline {
                             docker-compose -p ${env.COMPOSE_PROJECT} -f ${env.COMPOSE_FILE} down --remove-orphans --volumes 2>/dev/null || true
                             
                             # Remove only containers specific to this environment including monitoring
-                            docker rm -f pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} prometheus-prod grafana-prod node-exporter-prod 2>/dev/null || true
+                            docker rm -f pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} prometheus-prod grafana-prod node-exporter-prod openobserve-prod 2>/dev/null || true
                             
                             # Wait a moment for cleanup to complete
                             sleep 3

@@ -83,9 +83,26 @@ services:
       - pharmacy-network-prod
     restart: unless-stopped
 
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    container_name: openobserve-prod
+    ports:
+      - "5080:5080"
+    environment:
+      - ZO_ROOT_USER_EMAIL=admin@pharmacy.com
+      - ZO_ROOT_USER_PASSWORD=Complexpass#123
+      - ZO_DATA_DIR=/data
+      - ZO_PROMETHEUS_ENABLED=true
+    volumes:
+      - openobserve-data:/data
+    networks:
+      - pharmacy-network-prod
+    restart: unless-stopped
+
 volumes:
   prometheus-data:
   grafana-data:
+  openobserve-data:
 
 networks:
   pharmacy-network-prod:

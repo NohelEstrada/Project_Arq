@@ -1,0 +1,12 @@
+# k6 Test Results
+results/*.json
+results/*.html
+results/*.csv
+
+# k6 logs
+*.log
+k6.log
+
+# Keep the results directory
+!results/.gitkeep
+
