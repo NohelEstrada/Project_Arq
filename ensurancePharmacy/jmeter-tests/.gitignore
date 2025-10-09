@@ -1,0 +1,13 @@
+# JMeter Test Results
+results/*.jtl
+results/*.csv
+results/*.log
+results/html-report-*/
+
+# JMeter temporary files
+*.log
+jmeter.log
+
+# Keep the results directory but ignore its contents
+!results/.gitkeep
+
