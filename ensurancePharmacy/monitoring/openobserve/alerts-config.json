@@ -1,0 +1,291 @@
+{
+  "alerts": [
+    {
+      "name": "High CPU Usage - Warning",
+      "description": "Alerta cuando el uso de CPU supera el 70% durante más de 5 minutos",
+      "query": "SELECT avg(100 - (avg_over_time(node_cpu_seconds_total{mode='idle'}[5m]) * 100)) as cpu_usage FROM default WHERE cpu_usage > 70",
+      "condition": {
+        "operator": "gt",
+        "threshold": 70,
+        "duration": "5m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "1m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High CPU Usage Detected",
+          "message": "El uso de CPU ha superado el 70%. Valor actual: {value}%"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH CPU USAGE WARNING*\n\n*Severity:* Warning\n*Metric:* CPU Usage\n*Current Value:* {value}%\n*Threshold:* 70%\n*Duration:* 5 minutes\n*Time:* {timestamp}\n\n*Action Required:* Please investigate the cause of high CPU usage."
+        }
+      ]
+    },
+    {
+      "name": "Critical CPU Usage",
+      "description": "Alerta crítica cuando el uso de CPU supera el 90% durante más de 2 minutos",
+      "query": "SELECT avg(100 - (avg_over_time(node_cpu_seconds_total{mode='idle'}[5m]) * 100)) as cpu_usage FROM default WHERE cpu_usage > 90",
+      "condition": {
+        "operator": "gt",
+        "threshold": 90,
+        "duration": "2m"
+      },
+      "severity": "critical",
+      "enabled": true,
+      "frequency": "30s",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "🚨 [CRITICAL] Critical CPU Usage Detected!",
+          "message": "⚠️ ALERTA CRÍTICA: El uso de CPU ha superado el 90%. Valor actual: {value}%. Acción inmediata requerida."
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🔴 *CRITICAL CPU USAGE ALERT*\n\n*Severity:* CRITICAL\n*Metric:* CPU Usage\n*Current Value:* {value}%\n*Threshold:* 90%\n*Duration:* 2 minutes\n*Time:* {timestamp}\n\n⚠️ *IMMEDIATE ACTION REQUIRED*\nThe system CPU usage is critically high. Investigate immediately to prevent service degradation."
+        }
+      ]
+    },
+    {
+      "name": "High Memory Usage - Warning",
+      "description": "Alerta cuando el uso de memoria supera el 80% durante más de 5 minutos",
+      "query": "SELECT avg((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) as memory_usage FROM default WHERE memory_usage > 80",
+      "condition": {
+        "operator": "gt",
+        "threshold": 80,
+        "duration": "5m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "1m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High Memory Usage Detected",
+          "message": "El uso de memoria ha superado el 80%. Valor actual: {value}%"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH MEMORY USAGE WARNING*\n\n*Severity:* Warning\n*Metric:* Memory Usage\n*Current Value:* {value}%\n*Threshold:* 80%\n*Duration:* 5 minutes\n*Time:* {timestamp}\n\n*Action Required:* Monitor memory usage and investigate potential memory leaks."
+        }
+      ]
+    },
+    {
+      "name": "Critical Memory Usage",
+      "description": "Alerta crítica cuando el uso de memoria supera el 90% durante más de 2 minutos",
+      "query": "SELECT avg((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) as memory_usage FROM default WHERE memory_usage > 90",
+      "condition": {
+        "operator": "gt",
+        "threshold": 90,
+        "duration": "2m"
+      },
+      "severity": "critical",
+      "enabled": true,
+      "frequency": "30s",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "🚨 [CRITICAL] Critical Memory Usage Detected!",
+          "message": "⚠️ ALERTA CRÍTICA: El uso de memoria ha superado el 90%. Valor actual: {value}%. Acción inmediata requerida."
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🔴 *CRITICAL MEMORY USAGE ALERT*\n\n*Severity:* CRITICAL\n*Metric:* Memory Usage\n*Current Value:* {value}%\n*Threshold:* 90%\n*Duration:* 2 minutes\n*Time:* {timestamp}\n\n⚠️ *IMMEDIATE ACTION REQUIRED*\nThe system memory usage is critically high. Risk of OOM (Out of Memory) errors."
+        }
+      ]
+    },
+    {
+      "name": "High Disk Usage",
+      "description": "Alerta cuando el uso de disco supera el 85%",
+      "query": "SELECT avg((1 - (node_filesystem_avail_bytes{mountpoint='/'} / node_filesystem_size_bytes{mountpoint='/'})) * 100) as disk_usage FROM default WHERE disk_usage > 85",
+      "condition": {
+        "operator": "gt",
+        "threshold": 85,
+        "duration": "5m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "5m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High Disk Usage Detected",
+          "message": "El uso de disco ha superado el 85%. Valor actual: {value}%"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH DISK USAGE WARNING*\n\n*Severity:* Warning\n*Metric:* Disk Usage\n*Current Value:* {value}%\n*Threshold:* 85%\n*Time:* {timestamp}\n\n*Action Required:* Clean up disk space or increase storage capacity."
+        }
+      ]
+    },
+    {
+      "name": "High Response Time",
+      "description": "Alerta cuando el tiempo de respuesta supera 1000ms",
+      "query": "SELECT histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) * 1000 as response_time FROM default WHERE response_time > 1000",
+      "condition": {
+        "operator": "gt",
+        "threshold": 1000,
+        "duration": "3m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "1m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High Response Time Detected",
+          "message": "El tiempo de respuesta (P95) ha superado 1000ms. Valor actual: {value}ms"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH RESPONSE TIME WARNING*\n\n*Severity:* Warning\n*Metric:* Response Time (P95)\n*Current Value:* {value}ms\n*Threshold:* 1000ms\n*Duration:* 3 minutes\n*Time:* {timestamp}\n\n*Action Required:* Application performance degradation detected. Check backend services."
+        }
+      ]
+    },
+    {
+      "name": "High Error Rate",
+      "description": "Alerta cuando la tasa de errores supera el 5%",
+      "query": "SELECT (rate(http_server_requests_seconds_count{status=~'5..'}[5m]) / rate(http_server_requests_seconds_count[5m])) * 100 as error_rate FROM default WHERE error_rate > 5",
+      "condition": {
+        "operator": "gt",
+        "threshold": 5,
+        "duration": "3m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "1m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High Error Rate Detected",
+          "message": "La tasa de errores HTTP 5xx ha superado el 5%. Valor actual: {value}%"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH ERROR RATE WARNING*\n\n*Severity:* Warning\n*Metric:* HTTP Error Rate (5xx)\n*Current Value:* {value}%\n*Threshold:* 5%\n*Duration:* 3 minutes\n*Time:* {timestamp}\n\n*Action Required:* Multiple server errors detected. Check application logs and backend health."
+        }
+      ]
+    },
+    {
+      "name": "Pipeline Build Failed",
+      "description": "Alerta cuando el pipeline de Jenkins falla",
+      "query": "SELECT increase(jenkins_job_failure_total[5m]) as failures FROM default WHERE failures > 0",
+      "condition": {
+        "operator": "gt",
+        "threshold": 0,
+        "duration": "1m"
+      },
+      "severity": "critical",
+      "enabled": true,
+      "frequency": "1m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "🚨 [CRITICAL] Pipeline Build Failed!",
+          "message": "El pipeline de Jenkins ha fallado. Número de fallos: {value}"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🔴 *PIPELINE BUILD FAILED*\n\n*Severity:* CRITICAL\n*Metric:* Jenkins Build Status\n*Failures:* {value}\n*Time:* {timestamp}\n\n⚠️ *ACTION REQUIRED*\nThe CI/CD pipeline has failed. Check Jenkins console output for details."
+        }
+      ]
+    },
+    {
+      "name": "Pipeline Taking Too Long",
+      "description": "Alerta cuando el pipeline tarda más de 10 minutos",
+      "query": "SELECT jenkins_job_duration_seconds / 60 as duration_minutes FROM default WHERE duration_minutes > 10",
+      "condition": {
+        "operator": "gt",
+        "threshold": 10,
+        "duration": "2m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "2m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] Pipeline Taking Too Long",
+          "message": "El pipeline está tardando más de 10 minutos. Duración actual: {value} minutos"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *PIPELINE DURATION WARNING*\n\n*Severity:* Warning\n*Metric:* Pipeline Duration\n*Current Duration:* {value} minutes\n*Threshold:* 10 minutes\n*Time:* {timestamp}\n\n*Action Required:* Pipeline is taking longer than expected. Check for performance issues."
+        }
+      ]
+    },
+    {
+      "name": "High Pipeline Queue",
+      "description": "Alerta cuando la cola del pipeline tiene más de 5 trabajos",
+      "query": "SELECT jenkins_queue_size_value as queue_size FROM default WHERE queue_size > 5",
+      "condition": {
+        "operator": "gt",
+        "threshold": 5,
+        "duration": "5m"
+      },
+      "severity": "warning",
+      "enabled": true,
+      "frequency": "5m",
+      "notifications": [
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "subject": "⚠️ [WARNING] High Pipeline Queue Size",
+          "message": "La cola del pipeline tiene más de 5 trabajos pendientes. Tamaño actual: {value}"
+        },
+        {
+          "type": "slack",
+          "webhook_url": "${SLACK_WEBHOOK_URL}",
+          "channel": "#unis-project",
+          "message": "🟡 *HIGH PIPELINE QUEUE WARNING*\n\n*Severity:* Warning\n*Metric:* Pipeline Queue Size\n*Current Size:* {value} jobs\n*Threshold:* 5 jobs\n*Duration:* 5 minutes\n*Time:* {timestamp}\n\n*Action Required:* Pipeline queue is getting large. Consider adding more build agents."
+        }
+      ]
+    }
+  ],
+  "notification_settings": {
+    "email": {
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "smtp_user": "pharmacy.monitoring@gmail.com",
+      "smtp_password": "your_app_password_here",
+      "from_address": "pharmacy.monitoring@gmail.com",
+      "from_name": "OpenObserve Pharmacy Monitoring"
+    },
+    "slack": {
+      "default_webhook": "${SLACK_WEBHOOK_URL}",
+      "default_channel": "#unis-project",
+      "username": "OpenObserve Bot",
+      "icon_emoji": ":bar_chart:"
+    }
+  }
+}
+

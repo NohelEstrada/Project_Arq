@@ -56,10 +56,22 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      # SMTP Configuration for Email Alerts
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=pharmacy.monitoring@gmail.com
+      - GF_SMTP_PASSWORD=mkwibcfkcaqtfdpy
+      - GF_SMTP_FROM_ADDRESS=pharmacy.monitoring@gmail.com
+      - GF_SMTP_FROM_NAME=Pharmacy Monitoring System
+      # Unified Alerting
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_ALERTING_ENABLED=true
+      - GF_ALERTING_EXECUTE_ALERTS=true
     depends_on:
       - prometheus
     networks:

@@ -1,0 +1,470 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: System Performance Alerts
+    folder: Pharmacy Alerts
+    interval: 1m
+    rules:
+      # 🔴 ALERTA CRÍTICA: CPU > 90%
+      - uid: cpu_critical_alert
+        title: CPU Usage Critical (>90%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 60
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "CPU usage is critically high"
+          description: "El uso de CPU ha superado el 90% durante más de 2 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: critical
+          component: system
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA WARNING: CPU > 70%
+      - uid: cpu_warning_alert
+        title: CPU Usage High (>70%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 50
+                      - 60
+                    type: within_range
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "CPU usage is high"
+          description: "El uso de CPU ha superado el 70% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: warning
+          component: system
+          team: devops
+        isPaused: false
+
+      # 🔴 ALERTA CRÍTICA: Memoria > 90%
+      - uid: memory_critical_alert
+        title: Memory Usage Critical (>90%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 90
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Memory usage is critically high"
+          description: "El uso de memoria ha superado el 90% durante más de 2 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: critical
+          component: system
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA WARNING: Memoria > 80%
+      - uid: memory_warning_alert
+        title: Memory Usage High (>80%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                      - 90
+                    type: within_range
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Memory usage is high"
+          description: "El uso de memoria ha superado el 80% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: warning
+          component: system
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA: Disk Usage > 85%
+      - uid: disk_warning_alert
+        title: Disk Usage High (>85%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 85
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Disk usage is high"
+          description: "El uso de disco ha superado el 85% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: warning
+          component: storage
+          team: devops
+        isPaused: false
+
+  - orgId: 1
+    name: Application Performance Alerts
+    folder: Pharmacy Alerts
+    interval: 1m
+    rules:
+      # 🟡 ALERTA: Response Time > 1000ms
+      - uid: response_time_alert
+        title: High Response Time (>1000ms)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) * 1000
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1000
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Application response time is high"
+          description: "El tiempo de respuesta (P95) ha superado 1000ms durante más de 3 minutos. Valor actual: {{ $values.B.Value }}ms"
+        labels:
+          severity: warning
+          component: application
+          team: development
+        isPaused: false
+
+      # 🟡 ALERTA: Error Rate > 5%
+      - uid: error_rate_alert
+        title: High Error Rate (>5%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (rate(http_server_requests_seconds_count{status=~"5.."}[5m]) / rate(http_server_requests_seconds_count[5m])) * 100
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Application error rate is high"
+          description: "La tasa de errores HTTP 5xx ha superado el 5% durante más de 3 minutos. Valor actual: {{ $values.B.Value }}%"
+        labels:
+          severity: warning
+          component: application
+          team: development
+        isPaused: false
+
+  - orgId: 1
+    name: Pipeline Alerts
+    folder: Pharmacy Alerts
+    interval: 1m
+    rules:
+      # 🔴 ALERTA: Pipeline Failed
+      - uid: pipeline_failed_alert
+        title: Pipeline Build Failed
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(jenkins_job_failure_total[5m])
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Pipeline build has failed"
+          description: "El pipeline de Jenkins ha fallado. Número de fallos: {{ $values.B.Value }}"
+        labels:
+          severity: critical
+          component: pipeline
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA: Pipeline Duration > 10 minutes
+      - uid: pipeline_duration_alert
+        title: Pipeline Taking Too Long (>10min)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: jenkins_job_duration_seconds / 60
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Pipeline is taking too long"
+          description: "El pipeline está tardando más de 10 minutos. Duración actual: {{ $values.B.Value }} minutos"
+        labels:
+          severity: warning
+          component: pipeline
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA: Queue Size > 5
+      - uid: pipeline_queue_alert
+        title: High Pipeline Queue Size (>5)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: jenkins_queue_size_value
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Pipeline queue is getting large"
+          description: "La cola del pipeline tiene más de 5 trabajos pendientes. Tamaño actual: {{ $values.B.Value }}"
+        labels:
+          severity: warning
+          component: pipeline
+          team: devops
+        isPaused: false
+

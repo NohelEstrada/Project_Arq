@@ -168,19 +168,64 @@ monitoring/
         └── application-performance.json # Dashboard de la aplicación
 ```
 
+## 🚨 Sistema de Alertas
+
+### ✅ Alertas Configuradas
+
+El sistema ya tiene **10 alertas automáticas** configuradas que envían notificaciones por **email** y **Slack**:
+
+#### Alertas de Sistema
+- 🔴 **CPU Crítica**: > 90% por 2 minutos
+- ⚠️ **CPU Alta**: > 70% por 5 minutos
+- 🔴 **Memoria Crítica**: > 90% por 2 minutos
+- ⚠️ **Memoria Alta**: > 80% por 5 minutos
+- ⚠️ **Disco Alto**: > 85% por 5 minutos
+
+#### Alertas de Aplicación
+- ⚠️ **Response Time Alto**: > 1000ms por 3 minutos
+- ⚠️ **Error Rate Alto**: > 5% por 3 minutos
+
+#### Alertas de Pipeline
+- 🔴 **Pipeline Fallido**: Build falla
+- ⚠️ **Pipeline Lento**: > 10 minutos
+- ⚠️ **Queue Grande**: > 5 trabajos
+
+### 📧 Notificaciones
+
+Las alertas se envían a:
+- **Correos**: dnestrada@unis.edu.gt, jflores@unis.edu.gt
+- **Slack**: Canal #unis-project
+
+### 🚀 Configuración Rápida
+
+```bash
+# 1. Levantar servicios
+docker-compose -f docker-compose.prod.yml up -d
+
+# 2. Configurar alertas de OpenObserve
+cd monitoring/openobserve
+./setup-alerts.sh
+
+# 3. Probar alertas
+cd monitoring
+./test-alerts.sh
+```
+
+### 📚 Documentación de Alertas
+
+- **[ALERTAS-README.md](./ALERTAS-README.md)** - Documentación completa del sistema de alertas
+- **[ALERTAS-QUICK-START.md](./ALERTAS-QUICK-START.md)** - Guía rápida de 5 minutos
+- **[ALERTAS-CONFIGURACION-SMTP.md](./ALERTAS-CONFIGURACION-SMTP.md)** - Configurar email
+- **[ALERTAS-RESUMEN-VISUAL.md](./ALERTAS-RESUMEN-VISUAL.md)** - Resumen visual con ejemplos
+- **[test-alerts.sh](./test-alerts.sh)** - Script interactivo para probar alertas
+
 ## 🎯 Próximos Pasos
 
-1. **Configurar alertas**: Crear reglas de alerta en Prometheus para notificar cuando:
-   - El pipeline falle más de 3 veces seguidas
-   - CPU > 90% por más de 5 minutos
-   - Memory > 90% por más de 5 minutos
-   - Response time > 1 segundo
-
+1. ✅ **Alertas configuradas**: 10 alertas automáticas con email y Slack
 2. **Agregar más métricas**: 
    - Métricas de negocio (ventas, pedidos, usuarios activos)
    - Métricas de base de datos
    - Métricas de SonarQube (code coverage, bugs, vulnerabilities)
-
 3. **Configurar retención**: Ajustar el tiempo de retención de datos en Prometheus según necesidades
 
 ## 📚 Referencias
