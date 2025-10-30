@@ -228,14 +228,33 @@ ENVEOF
                         
                         // Specific cleanup only for this environment
                         sh """
-                            # Stop only containers for this specific environment and project
+                            echo "Cleaning up existing containers..."
+                            
+                            # Stop and remove containers using docker-compose
                             docker-compose -p ${env.COMPOSE_PROJECT} -f ${env.COMPOSE_FILE} down --remove-orphans --volumes 2>/dev/null || true
                             
-                            # Remove only containers specific to this environment including monitoring
-                            docker rm -f pharmacy-backend-${env.ENVIRONMENT.substring(0,3)} pharmacy-frontend-${env.ENVIRONMENT.substring(0,3)} prometheus-prod grafana-prod node-exporter-prod openobserve-prod 2>/dev/null || true
+                            # Force remove containers by name (production)
+                            if [ "${env.ENVIRONMENT}" = "production" ]; then
+                                docker rm -f pharmacy-backend-prod pharmacy-frontend-prod 2>/dev/null || true
+                                docker rm -f prometheus-prod grafana-prod node-exporter-prod openobserve-prod 2>/dev/null || true
+                            fi
                             
-                            # Wait a moment for cleanup to complete
-                            sleep 3
+                            # Force remove containers by name (dev/uat)
+                            if [ "${env.ENVIRONMENT}" = "development" ]; then
+                                docker rm -f pharmacy-backend-dev pharmacy-frontend-dev 2>/dev/null || true
+                            fi
+                            
+                            if [ "${env.ENVIRONMENT}" = "uat" ]; then
+                                docker rm -f pharmacy-backend-uat pharmacy-frontend-uat 2>/dev/null || true
+                            fi
+                            
+                            # Remove any stopped containers from this project
+                            docker ps -a --filter "name=pharmacy-" --filter "status=exited" -q | xargs docker rm -f 2>/dev/null || true
+                            
+                            # Wait for cleanup to complete
+                            sleep 5
+                            
+                            echo "✅ Cleanup completed"
                         """
                         
                         // Build and start new containers with unique project name
