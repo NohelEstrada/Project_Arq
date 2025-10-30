@@ -34,7 +34,7 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 90
+                      - 2
                     type: gt
                   operator:
                     type: and
@@ -462,6 +462,51 @@ groups:
         annotations:
           summary: "Pipeline queue is getting large"
           description: "La cola del pipeline tiene más de 5 trabajos pendientes"
+        labels:
+          severity: warning
+          component: pipeline
+          team: devops
+        isPaused: false
+
+      # 🟡 ALERTA: Jenkins Builds Count > 2
+      - uid: jenkins_builds_count_alert
+        title: Multiple Jenkins Builds Running (>2)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              expr: default_jenkins_builds_duration_milliseconds_summary_count{job="jenkins"}
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Múltiples builds activos en Jenkins"
+          description: "Hay más de 2 builds ejecutándose simultáneamente en Jenkins durante 3 minutos. Posible sobrecarga del CI/CD o acumulación de trabajos."
         labels:
           severity: warning
           component: pipeline
