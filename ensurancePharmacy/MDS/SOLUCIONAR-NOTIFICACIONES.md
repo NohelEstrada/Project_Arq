@@ -11,7 +11,7 @@
 
 ### Paso 1: Verificar que la Webhook funcione
 ```bash
-curl -X POST https://hooks.slack.com/services/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 \
+curl -X POST ${SLACK_WEBHOOK_URL} \
   -H 'Content-Type: application/json' \
   -d '{"text": "🧪 Test desde terminal"}'
 ```
@@ -170,7 +170,7 @@ failed to send email: 535
 echo "=== DIAGNÓSTICO DE NOTIFICACIONES ==="
 echo ""
 echo "1. Probando Webhook de Slack..."
-curl -X POST https://hooks.slack.com/services/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 \
+curl -X POST ${SLACK_WEBHOOK_URL} \
   -H 'Content-Type: application/json' \
   -d '{"text": "Test"}' 2>&1
 

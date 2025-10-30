@@ -1,14 +1,55 @@
-.DS_Store
-/front/node_modules
-/backv4/.idea/
-/backv4/target/
-/backv5/.idea/
-/backv5/target/
- backv4/target/classes/com/sources/app/
-.idea/
-/.idea/
-/.idea
-/front/.env
-/pharmacy/.env
-front/.nuxt/
+# Environment files with secrets
+.env.prod
+.env.local
+.env.*.local
 .env
+
+# Monitoring secrets
+monitoring/.env
+
+# Node modules
+node_modules/
+*/node_modules/
+
+# Dependency directories
+bower_components/
+
+# Build outputs
+target/
+dist/
+build/
+*.war
+*.jar
+
+# Database files
+*.sqlite
+*.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test results
+test-results/
+coverage/
+
+# JMeter results
+jmeter-tests/results/*.jtl
+
+# Temp files
+tmp/
+temp/
+*.tmp

@@ -15,12 +15,12 @@ import json
 app = Flask(__name__)
 
 # Configuración
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "dnestrada@unis.edu.gt"
-SMTP_PASSWORD = "tjkzeziklzmsjxmd"
-SLACK_WEBHOOK = "https://hooks.slack.com/services/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"
-EMAIL_RECIPIENTS = ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"]
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "dnestrada@unis.edu.gt")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK_URL", "")
+EMAIL_RECIPIENTS = os.getenv("EMAIL_RECIPIENTS", "dnestrada@unis.edu.gt,jflores@unis.edu.gt").split(",")
 
 def format_openobserve_email(alert_data):
     

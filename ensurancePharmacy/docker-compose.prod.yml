@@ -64,16 +64,18 @@ services:
       # SMTP Configuration for Email Alerts
       - GF_SMTP_ENABLED=true
       - GF_SMTP_HOST=smtp.gmail.com:587
-      - GF_SMTP_USER=dnestrada@unis.edu.gt
-      - GF_SMTP_PASSWORD=tjkzeziklzmsjxmd
-      - GF_SMTP_FROM_ADDRESS=dnestrada@unis.edu.gt
+      - GF_SMTP_USER=${SMTP_USER}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${SMTP_FROM}
       - GF_SMTP_FROM_NAME=Pharmacy Monitoring System
       # Unified Alerting
       - GF_UNIFIED_ALERTING_ENABLED=true
       - GF_ALERTING_ENABLED=true
       - GF_ALERTING_EXECUTE_ALERTS=true
       # Slack Webhook URL for Alerting
-      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    env_file:
+      - .env.prod
     depends_on:
       - prometheus
     networks:

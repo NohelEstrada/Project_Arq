@@ -17,7 +17,7 @@ echo ""
 
 echo "🔔 2. PROBANDO SLACK"
 echo "========================================"
-SLACK_URL="https://hooks.slack.com/services/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"
+SLACK_URL="https://hooks.slack.com/services/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"
 echo "Webhook URL: $SLACK_URL"
 echo "Enviando mensaje de prueba..."
 SLACK_RESPONSE=$(curl -s -X POST "$SLACK_URL" \

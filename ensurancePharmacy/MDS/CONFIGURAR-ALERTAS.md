@@ -87,7 +87,7 @@ Esta guía te ayudará a configurar las alertas del sistema en OpenObserve usand
    ```json
    {
      "type": "slack",
-     "url": "https://hooks.slack.com/services/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",
+     "url": "${SLACK_WEBHOOK_URL}",
      "template": {
        "text": "🔴 *ALERTA CRÍTICA: CPU*\n\n*Alerta:* {alert_name}\n*Severidad:* Critical\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}\n*URL:* {alert_url}"
      }
@@ -137,7 +137,7 @@ curl -X POST "http://localhost:5080/api/default/alerts" \
     "destination": [
       {
         "type": "slack",
-        "url": "https://hooks.slack.com/services/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",
+        "url": "${SLACK_WEBHOOK_URL}",
         "template": {
           "text": "🔴 *ALERTA CRÍTICA: CPU*\\n\\n*Alerta:* {alert_name}\\n*Severidad:* Critical\\n*Valor actual:* {alert_agg_value}%\\n*Umbral:* {alert_threshold}%\\n*Inicio:* {alert_trigger_time_str}"
         }

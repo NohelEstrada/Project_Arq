@@ -8,6 +8,16 @@ services:
     container_name: openobserve-alert-forwarder
     ports:
       - "5001:5001"
+    environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - EMAIL_RECIPIENTS=${EMAIL_RECIPIENTS}
+    env_file:
+      - ../../.env.prod
     restart: unless-stopped
     networks:
       - pharmacy-network-prod
