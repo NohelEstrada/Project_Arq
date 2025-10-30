@@ -17,7 +17,11 @@ echo ""
 
 echo "🔔 2. PROBANDO SLACK"
 echo "========================================"
-SLACK_URL="https://hooks.slack.com/services/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"
+# Lee el webhook desde variables de entorno o archivo .env.prod
+if [ -f "../.env.prod" ]; then
+    export $(grep SLACK_WEBHOOK_URL ../.env.prod | xargs)
+fi
+SLACK_URL="${SLACK_WEBHOOK_URL:-CONFIGURE_IN_ENV_FILE}"
 echo "Webhook URL: $SLACK_URL"
 echo "Enviando mensaje de prueba..."
 SLACK_RESPONSE=$(curl -s -X POST "$SLACK_URL" \
