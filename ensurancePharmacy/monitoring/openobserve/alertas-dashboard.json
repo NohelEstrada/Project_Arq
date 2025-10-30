@@ -1,0 +1,994 @@
+{
+  "version": 5,
+  "dashboardId": "alertas_sistema_pharmacy_001",
+  "title": "Sistema de Alertas - Pharmacy Monitoring",
+  "description": "Dashboard de alertas del sistema de monitoreo con métricas de CPU, Memoria, Disco y Pipeline",
+  "role": "",
+  "owner": "",
+  "created": "2025-10-30T06:00:00.000Z",
+  "tabs": [
+    {
+      "tabId": "default",
+      "name": "Alertas y Métricas",
+      "panels": [
+        {
+          "id": "Panel_Alertas_Criticas",
+          "type": "line",
+          "title": "🔴 Alertas Críticas Activas",
+          "description": "Número de alertas críticas disparadas",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 2,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": null,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "count(ALERTS{severity=\"critical\",alertstate=\"firing\"}) OR on() vector(0)",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "Alertas Críticas"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4,
+            "i": 1,
+            "panelId": "Panel_Alertas_Criticas",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Alertas_Warning",
+          "type": "line",
+          "title": "🟡 Alertas Warning Activas",
+          "description": "Número de alertas de advertencia disparadas",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 2,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": null,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "count(ALERTS{severity=\"warning\",alertstate=\"firing\"}) OR on() vector(0)",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "Alertas Warning"
+              }
+            }
+          ],
+          "layout": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4,
+            "i": 2,
+            "panelId": "Panel_Alertas_Warning",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_CPU_Usage",
+          "type": "line",
+          "title": "💻 CPU Usage (%)",
+          "description": "Uso de CPU del servidor - Umbral crítico: 90%, warning: 70%",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 2,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "percent",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": 100
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "CPU Usage"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 6,
+            "i": 3,
+            "panelId": "Panel_CPU_Usage",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Memory_Usage",
+          "type": "line",
+          "title": "💾 Memoria Usage (%)",
+          "description": "Uso de memoria del servidor - Umbral crítico: 90%, warning: 80%",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 2,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "percent",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": 100
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "Memory Usage"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 10,
+            "w": 12,
+            "h": 6,
+            "i": 4,
+            "panelId": "Panel_Memory_Usage",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Disk_Usage",
+          "type": "line",
+          "title": "💿 Disco Usage (%)",
+          "description": "Uso de disco (/tmp) - Umbral warning: 85%",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 2,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "percent",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": 100
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/tmp\"} / node_filesystem_size_bytes{mountpoint=\"/tmp\"})) * 100",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "Disk Usage"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 16,
+            "w": 12,
+            "h": 6,
+            "i": 5,
+            "panelId": "Panel_Disk_Usage",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Jenkins_Builds_Failed",
+          "type": "line",
+          "title": "❌ Jenkins - Builds Fallidos",
+          "description": "Total de builds fallidos en Jenkins",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_failed_build_count_total",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 22,
+            "w": 6,
+            "h": 5,
+            "i": 6,
+            "panelId": "Panel_Jenkins_Builds_Failed",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Jenkins_Builds_Success",
+          "type": "line",
+          "title": "✅ Jenkins - Builds Exitosos",
+          "description": "Total de builds exitosos en Jenkins",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_success_build_count_total",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 6,
+            "y": 22,
+            "w": 6,
+            "h": 5,
+            "i": 7,
+            "panelId": "Panel_Jenkins_Builds_Success",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Build_Duration",
+          "type": "line",
+          "title": "⏱️ Duración del Build (minutos)",
+          "description": "Tiempo de duración del último build - Umbral: >10 minutos",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 2,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "minutes",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_last_build_duration_milliseconds / 60000",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 27,
+            "w": 12,
+            "h": 6,
+            "i": 8,
+            "panelId": "Panel_Build_Duration",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Error_Rate",
+          "type": "line",
+          "title": "📊 Tasa de Error (%)",
+          "description": "Porcentaje de builds fallidos - Umbral: >5%",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 2,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "percent",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": 100
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "(default_jenkins_builds_failed_build_count_total / default_jenkins_builds_total_build_count_total) * 100",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 33,
+            "w": 12,
+            "h": 6,
+            "i": 9,
+            "panelId": "Panel_Error_Rate",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Tests_Failing",
+          "type": "line",
+          "title": "🧪 Tests Fallando",
+          "description": "Número de tests que están fallando en el último build",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_last_build_tests_failing",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 0,
+            "y": 39,
+            "w": 4,
+            "h": 4,
+            "i": 10,
+            "panelId": "Panel_Tests_Failing",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Tests_Total",
+          "type": "line",
+          "title": "🧪 Tests Totales",
+          "description": "Número total de tests en el último build",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": true,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "short",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": null
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_last_build_tests_total",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 4,
+            "y": 39,
+            "w": 4,
+            "h": 4,
+            "i": 11,
+            "panelId": "Panel_Tests_Total",
+            "static": false
+          }
+        },
+        {
+          "id": "Panel_Health_Score",
+          "type": "line",
+          "title": "💚 Health Score",
+          "description": "Puntuación de salud del sistema Jenkins (0-100)",
+          "config": {
+            "show_legends": true,
+            "legends_position": null,
+            "decimals": 0,
+            "line_thickness": 1.5,
+            "top_results_others": false,
+            "axis_border_show": false,
+            "label_option": {
+              "rotate": 0
+            },
+            "show_symbol": false,
+            "line_interpolation": "smooth",
+            "legend_width": {
+              "unit": "px"
+            },
+            "base_map": {
+              "type": "osm"
+            },
+            "map_view": {
+              "zoom": 1,
+              "lat": 0,
+              "lng": 0
+            },
+            "map_symbol_style": {
+              "size": "by Value",
+              "size_by_value": {
+                "min": 1,
+                "max": 100
+              },
+              "size_fixed": 2
+            },
+            "drilldown": [],
+            "promql_legend": "",
+            "unit": "percent",
+            "unit_custom": null,
+            "axis_width": null,
+            "axis_min": 0,
+            "axis_max": 100
+          },
+          "queryType": "promql",
+          "queries": [
+            {
+              "query": "default_jenkins_builds_health_score",
+              "customQuery": true,
+              "fields": {
+                "stream": "default",
+                "stream_type": "metrics",
+                "x": [],
+                "y": [],
+                "z": [],
+                "filter": []
+              },
+              "config": {
+                "promql_legend": "{{jenkins_job}}"
+              }
+            }
+          ],
+          "layout": {
+            "x": 8,
+            "y": 39,
+            "w": 4,
+            "h": 4,
+            "i": 12,
+            "panelId": "Panel_Health_Score",
+            "static": false
+          }
+        }
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 6,
+      "h": 4,
+      "i": 1,
+      "panelId": "Panel_Alertas_Criticas",
+      "static": false
+    },
+    {
+      "x": 6,
+      "y": 0,
+      "w": 6,
+      "h": 4,
+      "i": 2,
+      "panelId": "Panel_Alertas_Warning",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "w": 12,
+      "h": 6,
+      "i": 3,
+      "panelId": "Panel_CPU_Usage",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "w": 12,
+      "h": 6,
+      "i": 4,
+      "panelId": "Panel_Memory_Usage",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 16,
+      "w": 12,
+      "h": 6,
+      "i": 5,
+      "panelId": "Panel_Disk_Usage",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 22,
+      "w": 6,
+      "h": 5,
+      "i": 6,
+      "panelId": "Panel_Jenkins_Builds_Failed",
+      "static": false
+    },
+    {
+      "x": 6,
+      "y": 22,
+      "w": 6,
+      "h": 5,
+      "i": 7,
+      "panelId": "Panel_Jenkins_Builds_Success",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 27,
+      "w": 12,
+      "h": 6,
+      "i": 8,
+      "panelId": "Panel_Build_Duration",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 33,
+      "w": 12,
+      "h": 6,
+      "i": 9,
+      "panelId": "Panel_Error_Rate",
+      "static": false
+    },
+    {
+      "x": 0,
+      "y": 39,
+      "w": 4,
+      "h": 4,
+      "i": 10,
+      "panelId": "Panel_Tests_Failing",
+      "static": false
+    },
+    {
+      "x": 4,
+      "y": 39,
+      "w": 4,
+      "h": 4,
+      "i": 11,
+      "panelId": "Panel_Tests_Total",
+      "static": false
+    },
+    {
+      "x": 8,
+      "y": 39,
+      "w": 4,
+      "h": 4,
+      "i": 12,
+      "panelId": "Panel_Health_Score",
+      "static": false
+    }
+  ],
+  "variables": {
+    "list": []
+  }
+}

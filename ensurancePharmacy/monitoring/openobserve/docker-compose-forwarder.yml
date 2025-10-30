@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  alert-forwarder:
+    build:
+      context: .
+      dockerfile: Dockerfile.forwarder
+    container_name: openobserve-alert-forwarder
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    networks:
+      - pharmacy-network-prod
+
+networks:
+  pharmacy-network-prod:
+    external: true
+

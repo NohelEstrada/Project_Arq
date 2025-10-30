@@ -1,0 +1,64 @@
+{
+  "name": "Disk_Usage_Warning",
+  "stream_type": "metrics",
+  "stream_name": "node_filesystem_avail_bytes",
+  "is_real_time": "true",
+  "query_condition": {
+    "type": "custom",
+    "conditions": {
+      "groupId": "disk-warning-group",
+      "label": "and",
+      "items": [
+        {
+          "column": "mountpoint",
+          "operator": "=",
+          "value": "/tmp",
+          "ignore_case": false,
+          "id": "condition-mountpoint"
+        },
+        {
+          "column": "fstype",
+          "operator": "=",
+          "value": "tmpfs",
+          "ignore_case": false,
+          "id": "condition-fstype"
+        }
+      ]
+    },
+    "sql": null,
+    "promql": null,
+    "promql_condition": null,
+    "aggregation": {
+      "group_by": ["instance", "mountpoint"],
+      "function": "avg",
+      "having": {
+        "column": "value",
+        "operator": "<=",
+        "value": 162165019238,
+        "ignore_case": false
+      }
+    },
+    "vrl_function": null,
+    "search_event_type": null,
+    "multi_time_range": []
+  },
+  "trigger_condition": {
+    "period": 5,
+    "operator": ">=",
+    "threshold": 1,
+    "frequency": 1,
+    "cron": "",
+    "frequency_type": "minutes",
+    "silence": 240,
+    "timezone": "UTC",
+    "tolerance_in_secs": null,
+    "align_time": true
+  },
+  "destinations": [
+    "Slack Alertas"
+  ],
+  "context_attributes": [],
+  "row_template": "",
+  "description": "Alerta cuando el uso de disco supera el 85% (< 15% disponible)",
+  "enabled": true
+}

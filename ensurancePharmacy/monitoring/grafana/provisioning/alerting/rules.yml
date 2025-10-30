@@ -15,7 +15,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
               expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
               refId: A
@@ -34,17 +34,17 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 60
+                      - 90
                     type: gt
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 2m
         annotations:
           summary: "CPU usage is critically high"
-          description: "El uso de CPU ha superado el 90% durante más de 2 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "El uso de CPU ha superado el 90% durante más de 2 minutos"
         labels:
           severity: critical
           component: system
@@ -60,7 +60,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
               expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
               refId: A
@@ -79,18 +79,18 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 50
-                      - 60
+                      - 70
+                      - 90
                     type: within_range
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
           summary: "CPU usage is high"
-          description: "El uso de CPU ha superado el 70% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "El uso de CPU ha superado el 70% durante más de 5 minutos"
         labels:
           severity: warning
           component: system
@@ -106,7 +106,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
               expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
               refId: A
@@ -130,12 +130,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 2m
         annotations:
           summary: "Memory usage is critically high"
-          description: "El uso de memoria ha superado el 90% durante más de 2 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "El uso de memoria ha superado el 90% durante más de 2 minutos"
         labels:
           severity: critical
           component: system
@@ -151,7 +151,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
               expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
               refId: A
@@ -176,12 +176,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
           summary: "Memory usage is high"
-          description: "El uso de memoria ha superado el 80% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "El uso de memoria ha superado el 80% durante más de 5 minutos"
         labels:
           severity: warning
           component: system
@@ -197,9 +197,9 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
-              expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100
+              expr: (1 - (node_filesystem_avail_bytes{mountpoint="/tmp"} / node_filesystem_size_bytes{mountpoint="/tmp"})) * 100
               refId: A
           - refId: B
             datasourceUid: __expr__
@@ -221,12 +221,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
-        for: 5m
+        for: 30s
         annotations:
           summary: "Disk usage is high"
-          description: "El uso de disco ha superado el 85% durante más de 5 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "El uso de disco ha superado el 85% durante más de 5 minutos"
         labels:
           severity: warning
           component: storage
@@ -247,9 +247,9 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
-              expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) * 1000
+              expr: default_jenkins_builds_last_build_waiting_milliseconds
               refId: A
           - refId: B
             datasourceUid: __expr__
@@ -271,12 +271,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 3m
         annotations:
           summary: "Application response time is high"
-          description: "El tiempo de respuesta (P95) ha superado 1000ms durante más de 3 minutos. Valor actual: {{ $values.B.Value }}ms"
+          description: "El tiempo de respuesta (P95) ha superado 1000ms durante más de 3 minutos"
         labels:
           severity: warning
           component: application
@@ -292,9 +292,9 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
-              expr: (rate(http_server_requests_seconds_count{status=~"5.."}[5m]) / rate(http_server_requests_seconds_count[5m])) * 100
+              expr: (default_jenkins_builds_failed_build_count_total / default_jenkins_builds_total_build_count_total) * 100
               refId: A
           - refId: B
             datasourceUid: __expr__
@@ -316,12 +316,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 3m
         annotations:
           summary: "Application error rate is high"
-          description: "La tasa de errores HTTP 5xx ha superado el 5% durante más de 3 minutos. Valor actual: {{ $values.B.Value }}%"
+          description: "La tasa de errores HTTP 5xx ha superado el 5% durante más de 3 minutos"
         labels:
           severity: warning
           component: application
@@ -342,9 +342,9 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
-              expr: increase(jenkins_job_failure_total[5m])
+              expr: default_jenkins_builds_last_build_result_ordinal
               refId: A
           - refId: B
             datasourceUid: __expr__
@@ -366,12 +366,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 1m
         annotations:
           summary: "Pipeline build has failed"
-          description: "El pipeline de Jenkins ha fallado. Número de fallos: {{ $values.B.Value }}"
+          description: "El pipeline de Jenkins ha fallado"
         labels:
           severity: critical
           component: pipeline
@@ -387,9 +387,9 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
-              expr: jenkins_job_duration_seconds / 60
+              expr: default_jenkins_builds_last_build_duration_milliseconds / 60000
               refId: A
           - refId: B
             datasourceUid: __expr__
@@ -411,12 +411,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 2m
         annotations:
           summary: "Pipeline is taking too long"
-          description: "El pipeline está tardando más de 10 minutos. Duración actual: {{ $values.B.Value }} minutos"
+          description: "El pipeline está tardando más de 10 minutos"
         labels:
           severity: warning
           component: pipeline
@@ -432,7 +432,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: PBFA97CFB590B2093
             model:
               expr: jenkins_queue_size_value
               refId: A
@@ -456,12 +456,12 @@ groups:
                   operator:
                     type: and
               refId: C
-        noDataState: NoData
+        noDataState: OK
         execErrState: Error
         for: 5m
         annotations:
           summary: "Pipeline queue is getting large"
-          description: "La cola del pipeline tiene más de 5 trabajos pendientes. Tamaño actual: {{ $values.B.Value }}"
+          description: "La cola del pipeline tiene más de 5 trabajos pendientes"
         labels:
           severity: warning
           component: pipeline

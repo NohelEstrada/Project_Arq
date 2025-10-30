@@ -1,0 +1,277 @@
+{
+  "alerts": [
+    {
+      "name": "CPU_Usage_Critical",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+      "condition": {
+        "column": "value",
+        "operator": ">=",
+        "value": 90
+      },
+      "duration": 2,
+      "frequency": 1,
+      "time_between_alerts": 30,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🔴 *ALERTA CRÍTICA: CPU*\n\n*Alerta:* {alert_name}\n*Severidad:* Critical\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}\n*URL:* {alert_url}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🔴 Alerta Crítica: CPU > 90%",
+            "body": "Alerta: {alert_name}\nSeveridad: Critical\nValor actual: {alert_agg_value}%\nUmbral: {alert_threshold}%\nInicio: {alert_trigger_time_str}\n\nEl uso de CPU ha superado el 90% durante más de 2 minutos.\n\nURL: {alert_url}"
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando el uso de CPU supera el 90% por más de 2 minutos"
+    },
+    {
+      "name": "CPU_Usage_Warning",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+      "condition": {
+        "column": "value",
+        "operator": ">=",
+        "value": 70
+      },
+      "duration": 5,
+      "frequency": 1,
+      "time_between_alerts": 240,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🟡 *ADVERTENCIA: CPU*\n\n*Alerta:* {alert_name}\n*Severidad:* Warning\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🟡 Advertencia: CPU > 70%",
+            "body": "Alerta: {alert_name}\nSeveridad: Warning\nValor actual: {alert_agg_value}%\nUmbral: {alert_threshold}%\nInicio: {alert_trigger_time_str}\n\nEl uso de CPU está entre 70% y 90%."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando el uso de CPU está entre 70% y 90% por más de 5 minutos"
+    },
+    {
+      "name": "Memory_Usage_Critical",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+      "condition": {
+        "column": "value",
+        "operator": ">=",
+        "value": 90
+      },
+      "duration": 2,
+      "frequency": 1,
+      "time_between_alerts": 30,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🔴 *ALERTA CRÍTICA: MEMORIA*\n\n*Alerta:* {alert_name}\n*Severidad:* Critical\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🔴 Alerta Crítica: Memoria > 90%",
+            "body": "Alerta: {alert_name}\nSeveridad: Critical\nValor actual: {alert_agg_value}%\nUmbral: {alert_threshold}%\nInicio: {alert_trigger_time_str}\n\nEl uso de memoria ha superado el 90%."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando el uso de memoria supera el 90%"
+    },
+    {
+      "name": "Memory_Usage_Warning",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+      "condition": {
+        "column": "value",
+        "operator": ">=",
+        "value": 80
+      },
+      "duration": 5,
+      "frequency": 1,
+      "time_between_alerts": 240,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🟡 *ADVERTENCIA: MEMORIA*\n\n*Alerta:* {alert_name}\n*Severidad:* Warning\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🟡 Advertencia: Memoria > 80%",
+            "body": "Alerta: {alert_name}\nSeveridad: Warning\nValor actual: {alert_agg_value}%\nInicio: {alert_trigger_time_str}\n\nEl uso de memoria está entre 80% y 90%."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando el uso de memoria está entre 80% y 90%"
+    },
+    {
+      "name": "Disk_Usage_Warning",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/tmp\"} / node_filesystem_size_bytes{mountpoint=\"/tmp\"})) * 100",
+      "condition": {
+        "column": "value",
+        "operator": ">=",
+        "value": 85
+      },
+      "duration": 5,
+      "frequency": 1,
+      "time_between_alerts": 240,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🟡 *ADVERTENCIA: DISCO*\n\n*Alerta:* {alert_name}\n*Severidad:* Warning\n*Valor actual:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🟡 Advertencia: Disco > 85%",
+            "body": "Alerta: {alert_name}\nSeveridad: Warning\nValor actual: {alert_agg_value}%\nInicio: {alert_trigger_time_str}\n\nEl uso de disco ha superado el 85%."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando el uso de disco supera el 85%"
+    },
+    {
+      "name": "Jenkins_Build_Failed",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "default_jenkins_builds_last_build_result_ordinal",
+      "condition": {
+        "column": "value",
+        "operator": ">",
+        "value": 0
+      },
+      "duration": 1,
+      "frequency": 1,
+      "time_between_alerts": 30,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🔴 *PIPELINE FALLIDO*\n\n*Alerta:* {alert_name}\n*Severidad:* Critical\n*Inicio:* {alert_trigger_time_str}\n\nUn build de Jenkins ha fallado."
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🔴 Pipeline Build Fallido",
+            "body": "Alerta: {alert_name}\nSeveridad: Critical\nInicio: {alert_trigger_time_str}\n\nUn build de Jenkins ha fallado."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando un build de Jenkins falla"
+    },
+    {
+      "name": "Jenkins_Build_Duration_Long",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "default_jenkins_builds_last_build_duration_milliseconds / 60000",
+      "condition": {
+        "column": "value",
+        "operator": ">",
+        "value": 10
+      },
+      "duration": 1,
+      "frequency": 1,
+      "time_between_alerts": 60,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🟡 *PIPELINE LENTO*\n\n*Alerta:* {alert_name}\n*Severidad:* Warning\n*Duración:* {alert_agg_value} minutos\n*Umbral:* {alert_threshold} minutos\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🟡 Pipeline Tomando Mucho Tiempo",
+            "body": "Alerta: {alert_name}\nDuración: {alert_agg_value} minutos\nUmbral: {alert_threshold} minutos\nInicio: {alert_trigger_time_str}\n\nEl build está tardando más de 10 minutos."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando un build tarda más de 10 minutos"
+    },
+    {
+      "name": "Jenkins_Error_Rate_High",
+      "stream_type": "metrics",
+      "stream_name": "prometheus",
+      "query_type": "promql",
+      "query": "(default_jenkins_builds_failed_build_count_total / default_jenkins_builds_total_build_count_total) * 100",
+      "condition": {
+        "column": "value",
+        "operator": ">",
+        "value": 5
+      },
+      "duration": 5,
+      "frequency": 1,
+      "time_between_alerts": 240,
+      "destination": [
+        {
+          "type": "slack",
+          "url": "https://hooks.slack.com/services/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",
+          "template": {
+            "text": "🟡 *ALTA TASA DE ERROR*\n\n*Alerta:* {alert_name}\n*Severidad:* Warning\n*Tasa de error:* {alert_agg_value}%\n*Umbral:* {alert_threshold}%\n*Inicio:* {alert_trigger_time_str}"
+          }
+        },
+        {
+          "type": "email",
+          "recipients": ["dnestrada@unis.edu.gt", "jflores@unis.edu.gt"],
+          "template": {
+            "subject": "🟡 Alta Tasa de Error en Builds",
+            "body": "Alerta: {alert_name}\nTasa de error: {alert_agg_value}%\nUmbral: {alert_threshold}%\nInicio: {alert_trigger_time_str}\n\nLa tasa de error de builds ha superado el 5%."
+          }
+        }
+      ],
+      "enabled": true,
+      "description": "Alerta cuando la tasa de error de builds supera el 5%"
+    }
+  ]
+}
+

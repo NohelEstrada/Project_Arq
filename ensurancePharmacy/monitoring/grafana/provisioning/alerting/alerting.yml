@@ -3,50 +3,32 @@ apiVersion: 1
 # Contact Points - Canales de notificación
 contactPoints:
   - orgId: 1
-    name: Email Notifications
-    receivers:
-      - uid: email-unis
-        type: email
-        settings:
-          addresses: dnestrada@unis.edu.gt;jflores@unis.edu.gt
-          singleEmail: false
-        disableResolveMessage: false
-
-  - orgId: 1
-    name: Slack Notifications
-    receivers:
-      - uid: slack-unis-project
-        type: slack
-        settings:
-          url: ${SLACK_WEBHOOK_URL}
-          recipient: '#unis-project'
-          title: '🚨 Pharmacy System Alert'
-          text: |-
-            {{ range .Alerts }}
-            *Alert:* {{ .Labels.alertname }}
-            *Status:* {{ .Status }}
-            *Severity:* {{ .Labels.severity }}
-            *Summary:* {{ .Annotations.summary }}
-            *Description:* {{ .Annotations.description }}
-            *Value:* {{ .ValueString }}
-            {{ end }}
-        disableResolveMessage: false
-
-  - orgId: 1
     name: Email + Slack
     receivers:
+      # Email Grafana
       - uid: email-unis
         type: email
         settings:
           addresses: dnestrada@unis.edu.gt;jflores@unis.edu.gt
           singleEmail: false
+          subject: '🚨 Grafana Alert - {{ .GroupLabels.alertname }}'
+          message: |-
+            {{ range .Alerts }}
+            Alert: {{ .Labels.alertname }}
+            Status: {{ .Status }}
+            Severity: {{ .Labels.severity }}
+            Summary: {{ .Annotations.summary }}
+            Description: {{ .Annotations.description }}
+            
+            {{ end }}
         disableResolveMessage: false
-      - uid: slack-unis-project
+      
+      # Slack Grafana
+      - uid: slack-unis
         type: slack
         settings:
-          url: ${SLACK_WEBHOOK_URL}
-          recipient: '#unis-project'
-          title: '🚨 Pharmacy System Alert'
+          recipient: '#alertas'
+          title: '🚨 Grafana Alert'
           text: |-
             {{ range .Alerts }}
             *Alert:* {{ .Labels.alertname }}
@@ -54,8 +36,19 @@ contactPoints:
             *Severity:* {{ .Labels.severity }}
             *Summary:* {{ .Annotations.summary }}
             *Description:* {{ .Annotations.description }}
-            *Value:* {{ .ValueString }}
             {{ end }}
+          url: ${SLACK_WEBHOOK_URL}
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: OpenObserve Forwarder
+    receivers:
+      # Webhook al servicio intermediario
+      - uid: webhook-openobserve
+        type: webhook
+        settings:
+          url: http://openobserve-alert-forwarder:5001/webhook
+          httpMethod: POST
         disableResolveMessage: false
 
 # Notification Policies - Políticas de enrutamiento de alertas
@@ -67,19 +60,34 @@ policies:
     group_interval: 5m
     repeat_interval: 4h
     routes:
-      # Alertas críticas - notificación inmediata
+      # Alertas críticas - Grafana normal
       - receiver: Email + Slack
+        matchers:
+          - severity = critical
+        group_wait: 10s
+        repeat_interval: 30m
+        continue: true
+      
+      # Alertas críticas - OpenObserve forwarder
+      - receiver: OpenObserve Forwarder
         matchers:
           - severity = critical
         group_wait: 10s
         repeat_interval: 30m
         continue: false
       
-      # Alertas de warning - notificación normal
+      # Alertas de warning - Grafana normal
       - receiver: Email + Slack
         matchers:
           - severity = warning
         group_wait: 30s
         repeat_interval: 4h
+        continue: true
+      
+      # Alertas de warning - OpenObserve forwarder
+      - receiver: OpenObserve Forwarder
+        matchers:
+          - severity = warning
+        group_wait: 30s
+        repeat_interval: 4h
         continue: false
-

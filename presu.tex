@@ -1,0 +1,153 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{makecell}
+\usepackage{float} % <- solo si usarás [H]
+\renewcommand{\tabularxcolumn}[1]{m{#1}} % celdas X centradas verticalmente
+
+\geometry{margin=1in}
+\captionsetup{font=small,labelfont=bf}
+\setlist{noitemsep, topsep=2pt}
+
+\title{Análisis de Especificaciones y Costos de Infraestructura para Sistema de Gestión de Farmacia}
+\author{Didvin Nohel Estrada Pineda}
+\date{Octubre 2025}
+
+\begin{document}
+\maketitle
+
+\section{Introducción}
+En este análisis se evalúan las especificaciones y costos de infraestructura para un Sistema de Gestión de Farmacia con ambientes de Desarrollo (Dev), Pruebas de Aceptación (UAT), Producción (Prod) y un servidor CI/CD. Se comparan al menos tres proveedores de nube (AWS, Azure, Google Cloud y DigitalOcean) con el objetivo de encontrar la mejor relación costo-beneficio, considerando rendimiento, escalabilidad y cumplimiento (por ejemplo, regulaciones de salud tipo HIPAA). Se presentarán las especificaciones recomendadas de servidor para cada ambiente, una comparación de costos en formato tabular (mensual y anual) y el costo anual total de la arquitectura en cada proveedor, incluyendo componentes adicionales como balanceadores de carga, almacenamiento y transferencias de datos. Finalmente, se brindarán conclusiones y una recomendación del proveedor más adecuado, junto con posibles optimizaciones de costos.
+
+\section{Especificaciones de Servidores por Ambiente}
+Cada ambiente requiere recursos de cómputo definidos según la carga esperada y el uso previsto. A continuación, se detallan las especificaciones técnicas estimadas para cada ambiente y el servidor de CI/CD, junto con la justificación de estos recursos:
+
+\textbf{Ambiente de Desarrollo (Dev):} Orientado a desarrollo activo y pruebas rápidas (5--10 desarrolladores concurrentes, tráfico interno bajo). Requiere aproximadamente 2--4 vCPU, 4--8GB de RAM y \(\approx\)50GB de almacenamiento SSD. Esto provee suficiente capacidad para ejecutar un \emph{frontend} en Node.js (uso estimado 0.5GB RAM) y un \emph{backend} Spring Boot (1--2GB RAM) contenedorizados, más cierta holgura para Docker (1GB) y el sistema operativo. La disponibilidad requerida es 8x5 (horario laboral).
+
+\textbf{Ambiente de Pruebas UAT:} Utilizado por QA y usuarios clave para validación (10--20 usuarios concurrentes, tráfico medio). Especificaciones estimadas: 2--4 vCPU, 8--16GB de RAM y \(\approx\)100GB SSD. Se necesita más memoria que en Dev para manejar un mayor volumen de datos de prueba (BD SQLite 500MB) y garantizar estabilidad en \emph{tests} prolongados. La disponibilidad esperada es 16x5 (horario extendido).
+
+\textbf{Ambiente de Producción (Prod):} Sistema en operación 24/7 para usuarios finales (pico de 50--100 usuarios concurrentes). Para garantizar alta disponibilidad, se consideran múltiples instancias: 3 instancias de \emph{frontend} (Node.js) y 3 de \emph{backend} (Java) en balanceo de carga, además de componentes de monitoreo y \emph{logging} (Prometheus, Grafana, OpenObserve, etc.). En conjunto, se estima un servidor (o grupo de servidores) equivalente a 8--16 vCPU, 32--64GB de RAM y 200--500GB SSD. Estos recursos cubren: \emph{frontends} (1.5GB RAM total), \emph{backends} (6GB RAM total), base de datos (2--4GB RAM si se usa Oracle/SQLite), monitoreo (Prometheus 4--8GB, Grafana 1--2GB, \emph{logging} 4--8GB, exportador 0.2GB) y margen de reserva de 20--30\% para picos de carga. Se exige alta disponibilidad (HA) 24x7 con 99.9\% de \emph{uptime}, por lo que se sugiere desplegar en múltiples zonas de disponibilidad y usar balanceadores de carga y auto-escalado en caso de crecimiento. También se deben considerar respaldos diarios automáticos y un plan de recuperación ante desastres.
+
+\textbf{Servidor de CI/CD:} Sirve a los \emph{pipelines} automáticos de integración y despliegue (Jenkins, SonarQube con PostgreSQL interno). Es intensivo en CPU durante las compilaciones y consume memoria significativa. Requisitos estimados: 4--8 vCPU, 16--32GB RAM y 100--200GB SSD. Esto soporta a Jenkins (4--8GB RAM, picos altos de CPU) y SonarQube + base PostgreSQL (4--8GB RAM), además de espacio para artefactos de \emph{build} (50GB). La carga típica son 20--30 ejecuciones diarias en Dev, 5--10 en UAT y algunos despliegues semanales a Prod; cada \emph{pipeline} dura 15 minutos con picos de CPU de 80--90\% y +2--4GB RAM usados temporalmente. Se requiere disponibilidad 16x5. Separar este servidor de los ambientes principales evita interferencias en rendimiento.
+
+En la Tabla\ref{tab:comparativa} se resumen las instancias de servidor específicas recomendadas para cada ambiente en cada proveedor analizado, con sus recursos asignados (vCPU, RAM, almacenamiento) y los costos estimados. A continuación, se detalla la selección y características de estas instancias por proveedor, antes de presentar la comparación tabular de costos.
+
+\section{Selección de Instancias en Proveedores Cloud}
+\textbf{Amazon Web Services (AWS):} Se propone usar instancias EC2 de tipo propósito general T3 (burstable) o M5/M6 (rendimiento fijo) según el ambiente. Para Dev, una \textbf{t3.large} (2vCPU, 8GB RAM) es adecuada, con 50GB en un volumen EBS \texttt{gp3}. La \emph{t3.large} cuesta aproximadamente \$0.0832 por hora en \texttt{us-east-1} (unos \$60--\$61 mensuales). Para UAT (mayor carga de pruebas), una \textbf{t3.xlarge} (4vCPU, 16GB RAM) proporciona el doble de recursos; su costo es \$0.1664/h (\$121.5 al mes). Dado que las instancias T3 son de rendimiento \emph{burstable}, se asume \enquote{Unlimited mode} para que puedan superar créditos si es necesario (el costo de créditos CPU extra es bajo, \$0.05 por vCPU-h). En producción, por la carga sostenida, es preferible usar instancias de rendimiento fijo. Se sugiere una \textbf{m5.4xlarge} (16vCPU, 64GB RAM) o equivalente actual (M6i/M7i), que puede alojar las 6 instancias de contenedores y servicios de monitoreo en un solo nodo potente (o dividirlas en varios nodos más pequeños). La \emph{m5.4xlarge} cuesta \$0.768/h en \emph{on-demand} (unos \$560 mensuales). Alternativamente, podrían usarse tres instancias medianas en un grupo auto-escalable con un Application Load Balancer; por ejemplo, tres \emph{m5.2xlarge} (8vCPU, 32GB cada una) distribuirían la carga. Cada \emph{m5.2xlarge} vale \$0.384/h (\$280/mes), por lo que tres sumarían costo similar a una \emph{m5.4xlarge}, pero añadirían el costo del balanceador. Finalmente, para el servidor \textbf{CI/CD}, se recomienda también una instancia M5 de tamaño mediano: por ejemplo \textbf{m5.2xlarge} (8vCPU, 32GB) para cubrir picos de compilación. Esta instancia cuesta \$0.384/h (\$280 al mes). Todas las instancias usarían discos EBS SSD (\texttt{gp3}) con suficiente IOPS (\texttt{gp3} ofrece 3{,}000 IOPS \emph{baseline} por volumen). Se estiman 50GB (Dev), 100GB (UAT), 500GB (Prod) y 100GB (CI) de almacenamiento primario. AWS cobra aproximadamente \$0.08 por GB-mes en \texttt{gp3}, por lo que estos volúmenes agregarían un costo mensual moderado (p.\,ej.\ \$40/mes por 500GB en Prod). En producción, también se considera un \textbf{Application Load Balancer} para repartir tráfico entre las 3 instancias \emph{frontend}/\emph{backend}; un ALB tiene un cargo fijo de \$0.0252/h (\$18 al mes) más costo por LCU (uso), resultando en \$20 mensuales. AWS ofrece todas las capacidades de alta disponibilidad (multi-AZ, balanceadores, auto-scaling) y cumplimiento (se puede firmar BAA para HIPAA). Para optimizar costos, AWS permite reservar instancias a 1 o 3 años con descuentos (30--40\% menos en 1 año). En este análisis, tomamos precios \emph{on-demand} para comparar equitativamente, pero se señalará el ahorro potencial donde aplique.
+
+\textbf{Microsoft Azure:} En Azure se seleccionaron máquinas virtuales equivalentes de la serie Dv5 (propósito general, última generación Intel). Para Dev se sugiere \textbf{Standard\_D2s\_v5} con 2vCPU y 8GB RAM (aprox.\ \$0.096/h). UAT usaría una \textbf{Standard\_D4s\_v5} (4vCPU, 16GB, \$0.192/h, \$140/mes). En Producción, una \textbf{Standard\_D16s\_v5} (16vCPU, 64GB) ofrece los recursos necesarios en un solo VM; su costo es \$0.768/h (\$560 mensuales), similar al de AWS. Alternativamente, se podría dividir la carga en varias instancias D4s o D8s detrás de un Azure Load Balancer. Para CI/CD, una \textbf{Standard\_D8s\_v5} (8vCPU, 32GB, \$0.384/h, \$280/mes) sería adecuada. Todas estas VMs usarían discos administrados Premium SSD para alto rendimiento (particularmente si en producción se usa Oracle DB). Azure ofrece tamaños de disco predefinidos; por ejemplo, un P10 (128GB) cuesta \$18/mes, y un P20 (512GB) \$73/mes. Para aproximar: Dev 64GB (\$7), UAT 128GB (\$18), Prod 512GB (\$73) y CI 128GB (\$18). Azure cobra el tráfico de salida similar a AWS (\$0.085--\$0.09/GB); según las estimaciones de transferencia (Prod 1--2TB/mes, etc.), los costos de datos pueden ser significativos (\$200+ mensuales sumando todos los ambientes). Un Load Balancer Standard en Azure tiene costo comparable a AWS (\$0.025/h \(\approx\)\$18/mes más datos). Azure cumple con requisitos empresariales (HA, múltiples regiones, BAA para HIPAA) y ofrece descuentos por reserva de VM (hasta 30--60\% menos). También existe \emph{Azure Hybrid Benefit} y tarifas Dev/Test para ahorrar si se califican.
+
+\textbf{Google Cloud Platform (GCP):} En Google Cloud se optó por la familia de máquinas E2 \emph{standard} (optimizada en costo, con CPU compartida pero rendimiento adecuado para cargas moderadas). Estas instancias ofrecen recursos similares a menor precio a cambio de no tener garantizada dedicación total de CPU en todo momento (aceptable en Dev/UAT). Para Dev, \textbf{e2-standard-2} (2vCPU, 8GB) cuesta alrededor de \$49 mensuales; UAT usaría \textbf{e2-standard-4} (4vCPU, 16GB) por unos \$98/mes. En Prod, se considera \textbf{e2-standard-16} (16vCPU, 64GB) con costo \$0.54/h, aproximadamente \$391 al mes. Esta instancia cubriría todo el \emph{stack} productivo en un solo VM; alternativamente, GCP permite separar en múltiples instancias detrás de un Cloud Load Balancer. Para CI/CD, \textbf{e2-standard-8} (8vCPU, 32GB) costaría \$196/mes (escala lineal). Todas las VMs usan \emph{Persistent Disks}: se pueden elegir discos estándar (HDD, \$0.04/GB-mes) o balanceados SSD (\$0.17/GB-mes). Para Prod (con base de datos y alta I/O) se recomienda SSD; 500GB costarían \$85/mes, mientras Dev/UAT/CI podrían usar Standard (100GB \(\approx\)\$4). GCP incluye descuentos por uso continuo (\emph{sustained use}) automáticamente: al mantener una VM encendida todo el mes se obtiene 20--30\% de descuento sobre el precio por hora completo. (Nota: Los precios E2 mencionados suelen contemplar el descuento máximo por mes completo). GCP también ofrece \emph{Committed Use Discounts} de 1 y 3 años similares a reservados. En cuanto a red, Google Cloud cobra \$0.12/GB por egreso a internet hasta 1TB (luego baja a \$0.08); con 1.5TB/mes en Prod y 0.8TB en los demás combinados, estimamos \$250 mensuales en salidas. Un balanceador HTTP(S) global en GCP tiene costo \$0.025/h (\$18/mes) más \$0.008/GB gestionado. GCP cuenta con región en México (Querétaro) desde 2024, lo que reduce latencia para Latinoamérica. Ofrece soporte de seguridad y cumplimiento al nivel de AWS/Azure.
+
+\textbf{DigitalOcean (DO):} DigitalOcean ofrece \emph{Droplets} (VPS) con precios fijos mensuales y recursos dedicados de CPU en sus planes \emph{General Purpose} (GP). Se seleccionaron tamaños GP para cumplir los requisitos. Para Dev, un droplet \textbf{GP 2vCPU / 8GB} tiene costo fijo de \$60/mes e incluye 25GB de SSD NVMe; se añade un volumen de 25GB para llegar a 50GB (\$2.5/mes). En UAT, \textbf{GP 4vCPU / 16GB} cuesta \$120/mes e incluye 50GB; se adjuntan 50GB extra (\$5) para alcanzar 100GB. En Producción, un \textbf{GP 16vCPU / 64GB} cuesta \$480/mes e incluye 200GB SSD; haría falta agregar 300GB (\$30) para llegar a 500GB. Alternativamente, podrían usarse varios droplets más pequeños con balanceador (DO Load Balancer \$10/mes). Para CI/CD, un \textbf{GP 8vCPU / 32GB} (\$240/mes, 100GB incluido) cumple los 8 núcleos y 32GB; podría requerir almacenamiento adicional si los artefactos exceden 100GB (p.\,ej.\ +100GB = \$10). DO incluye una cuota de transferencia generosa (5--7TB por mes en estos planes), que cubre ampliamente las necesidades estimadas (2TB total). Para \emph{backups}, DO ofrece \emph{Backups} automáticos por un 20\% adicional del costo del droplet. En cumplimiento, DO anunció soporte para cargas HIPAA mediante BAA, haciéndolo viable para datos de salud, aunque su oferta es más reciente comparada a los proveedores mayores.
+
+\section{Comparación de Costos entre Proveedores}
+
+\begin{table}[H] % usa [H] si quieres fijarla y cargaste 'float'
+\centering
+\caption{Comparativa de especificaciones y costos por proveedor (mensual y anual) para cada ambiente/servidor del sistema.}
+\label{tab:comparativa}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{l l >{\RaggedRight\arraybackslash}X r r}
+\toprule
+\textbf{Proveedor} & \textbf{Servidor} & \textbf{Especificaciones (vCPU / RAM / Disco)} & \textbf{Costo Mensual} & \textbf{Costo Anual} \\
+\midrule
+AWS & \makecell[l]{Dev (EC2 t3.large)} & 2 vCPU / 8 GB RAM / 50 GB SSD EBS & \$61  & \$732   \\
+    & \makecell[l]{UAT (EC2 t3.xlarge)} & 4 vCPU / 16 GB RAM / 100 GB SSD EBS & \$122 & \$1,464 \\
+    & \makecell[l]{Producción (EC2 m5.4xlarge)} & 16 vCPU / 64 GB RAM / 500 GB SSD EBS & \$561 & \$6,732 \\
+    & \makecell[l]{CI/CD (EC2 m5.2xlarge)} & 8 vCPU / 32 GB RAM / 150 GB SSD EBS & \$280 & \$3,360 \\
+\cmidrule(lr){2-5}
+    & \multicolumn{2}{r}{\textit{Subtotal Instancias} (sin LB, datos, backups)} & \$1,024 & \$12,288 \\
+\midrule
+Azure & \makecell[l]{Dev (Standard\_D2s\_v5)} & 2 vCPU / 8 GB RAM / 64 GB Premium SSD & \$70  & \$840   \\
+      & \makecell[l]{UAT (Standard\_D4s\_v5)} & 4 vCPU / 16 GB RAM / 128 GB Premium SSD & \$140 & \$1,680 \\
+      & \makecell[l]{Producción (Standard\_D16s\_v5)} & 16 vCPU / 64 GB RAM / 512 GB Premium SSD & \$560 & \$6,720 \\
+      & \makecell[l]{CI/CD (Standard\_D8s\_v5)} & 8 vCPU / 32 GB RAM / 128 GB Premium SSD & \$280 & \$3,360 \\
+\cmidrule(lr){2-5}
+      & \multicolumn{2}{r}{\textit{Subtotal Instancias} (sin LB, datos, backups)} & \$1,050 & \$12,600 \\
+\midrule
+Google Cloud & \makecell[l]{Dev (e2-standard-2)} & 2 vCPU / 8 GB RAM / 50 GB PD Standard & \$75  & \$900   \\
+             & \makecell[l]{UAT (e2-standard-4)} & 4 vCPU / 16 GB RAM / 100 GB PD Standard & \$150 & \$1,800 \\
+             & \makecell[l]{Producción (e2-standard-16)} & 16 vCPU / 64 GB RAM / 500 GB PD SSD & \$600 & \$7,200 \\
+             & \makecell[l]{CI/CD (e2-standard-8)} & 8 vCPU / 32 GB RAM / 100 GB PD Standard & \$300 & \$3,600 \\
+\cmidrule(lr){2-5}
+             & \multicolumn{2}{r}{\textit{Subtotal Instancias} (sin LB, datos, backups)} & \$1,125 & \$13,500 \\
+\midrule
+DigitalOcean & \makecell[l]{Dev (GP 2vCPU)} & 2 vCPU / 8 GB RAM / 50 GB SSD (25+25) & \$63  & \$756   \\
+             & \makecell[l]{UAT (GP 4vCPU)} & 4 vCPU / 16 GB RAM / 100 GB SSD (50+50) & \$125 & \$1,500 \\
+             & \makecell[l]{Producción (GP 16vCPU)} & 16 vCPU / 64 GB RAM / 500 GB SSD (200+300) & \$510 & \$6,120 \\
+             & \makecell[l]{CI/CD (GP 8vCPU)} & 8 vCPU / 32 GB RAM / 100 GB SSD & \$240 & \$2,880 \\
+\cmidrule(lr){2-5}
+             & \multicolumn{2}{r}{\textit{Subtotal Instancias} (sin LB, backups)} & \$938 & \$11,256 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Costo Total Anual de la Arquitectura}
+Para obtener el costo total anual de la infraestructura requerida en cada proveedor, es necesario sumar a los subtotales anteriores los gastos adicionales por servicios complementarios: balanceador(es) de carga para producción, almacenamiento de respaldos, y costos de transferencia de datos salientes (en los casos que no estén incluidos). A continuación se detalla el cálculo aproximado por proveedor, asumiendo las necesidades descritas (tráfico estimado Dev 0.1TB/mes, UAT 0.2TB, Prod 1.5TB, CI 0.5TB; y copias de seguridad de 100\% del almacenamiento productivo):
+\begin{itemize}
+  \item \textbf{AWS:} Subtotal instancias \$12{,}288/año. EBS adicional (no incluido en instancias) aporta \$720/año (sumando todos los volúmenes). Transferencia saliente (2.0TB/mes total entre todos los ambientes) a \$0.09/GB supone \$2{,}484/año. Un Application Load Balancer en Prod añade \$240/año. Almacenamiento para \textit{backups} (instantáneas EBS o S3) de, digamos, 750GB totales a \$0.024/GB-mes (S3 Standard-Infrequent Access) costaría \$216/año. Sumando todo, el costo anual total en AWS ronda los \$16{,}000USD.
+  \item \textbf{Azure:} Subtotal instancias \$12{,}600/año. Discos Premium \$1{,}200/año (para 832GB totales provisionados). Egreso de 2.0TB/mes a \$0.087/GB implica \$2{,}400/año. Un Load Balancer Standard \$240/año. \emph{Backup} de 750GB en Azure (LRS \emph{cool} o Azure Backup) \$450/año. Total anual \$17{,}000USD.
+  \item \textbf{Google Cloud:} Subtotal instancias \$13{,}500/año. Almacenamiento: \$1{,}140/año (considerando 500GB SSD + 250GB HDD para los demás). Egreso 2.0TB/mes: \$3{,}312/año. Load Balancer \$240/año. \emph{Backups} 750GB en Cloud Storage Nearline: \$540/año. Suma estimada, GCP anual \$14{,}000--\$15{,}000USD.
+  \item \textbf{DigitalOcean:} Subtotal instancias \$11{,}256/año. DO no cobra transferencia adicional dado que las cuotas (4--7TB por Droplet) cubren holgadamente el uso previsto, por lo que \$0 en egreso (mientras no se excedan). Un Load Balancer (Prod) \$120/año. \emph{Backups} automáticos (20\% de \$900/mes) \$2{,}160/año. Total DO anual \$13{,}500USD. Si en lugar de \emph{backups} automáticos se usan \emph{snapshots} (\$0.05/GB-mes), el costo podría bajar a \$450/año en almacenamiento, reduciendo el total.
+\end{itemize}
+
+\section{Conclusiones}
+En base al análisis, todas las plataformas evaluadas pueden soportar la arquitectura de la farmacia con las especificaciones requeridas, pero presentan diferencias importantes en costo y características:
+\begin{itemize}
+  \item \textbf{AWS} ofrece la infraestructura más madura y completa, con amplia gama de servicios (p.\,ej., RDS Oracle, CloudWatch, etc.) y presencia global. Garantiza soporte empresarial y certificaciones (HIPAA, etc.). Sin embargo, es de los más costosos en modalidad \emph{on-demand}, especialmente por cargos de transferencia y almacenamiento EBS. En la estimación, AWS sería 20\% más caro que GCP y 15\% más que DO anualmente para esta carga.
+  \item \textbf{Azure} presenta características comparables a AWS en rendimiento, con la ventaja de integrarse bien con entornos Microsoft y sólido cumplimiento. Su costo \emph{on-demand} resultó ligeramente mayor que AWS en este escenario (\$17k vs.\ \$16k anuales).
+  \item \textbf{Google Cloud} se destacó por su menor costo en instancias de cómputo (E2 y descuentos por uso sostenido), resultando 10--15\% más económico que AWS/Azure. Cuenta con región en México, lo cual favorece la latencia para Centro y Sudamérica. Ofrece cumplimiento y servicios administrados suficientes para esta escala.
+  \item \textbf{DigitalOcean} resultó la opción más económica en costos directos, principalmente por incluir grandes cuotas de transferencia y tener precios fijos simples. Con \$13.5k/año (incluyendo \emph{backups}) es 15\% más barato que GCP y 20--25\% más que AWS/Azure. No obstante, carece de algunos servicios empresariales avanzados y \emph{features} de resiliencia de los \emph{hyperscalers}.
+\end{itemize}
+
+\section{Recomendación}
+Considerando la relación costo-beneficio, rendimiento, escalabilidad y soporte, se recomienda optar por \textbf{Google Cloud Platform (GCP)} para este proyecto. GCP ofrece un balance atractivo: su costo proyectado es inferior al de AWS y Azure sin sacrificar capacidades empresariales críticas. Con la región en México, GCP puede brindar bajas latencias a Centroamérica y Sudamérica, relevante para usuarios en Guatemala y países vecinos. Además, Google cumple con altos estándares de seguridad y privacidad (posibilidad de BAA para HIPAA al igual que AWS/Azure). En cuanto a rendimiento, las instancias E2/N2 pueden escalar sin problema para manejar crecimiento (\(+\)50\% a \(+\)100\% en 2--3 años). 
+
+\noindent
+\textbf{¿Por qué no AWS/Azure?} Principalmente por el costo. Para una \emph{startup} de tamaño mediano con presupuesto moderado, la diferencia de \$3k--\$4k anuales puede invertirse en desarrollo u otras áreas. AWS/Azure son excelentes si el presupuesto lo permite o si ya se tiene infraestructura/experiencia fuerte allí. 
+
+\noindent
+\textbf{¿Y DigitalOcean?} Es tentador por costo, pero debe evaluarse con cautela para producción crítica en salud. Aunque ahora cumple con HIPAA mediante BAA y su simplicidad es una ventaja, para un SLA de 99.9\% con HA multi-zona los \emph{hyperscalers} ofrecen más herramientas. DO puede ser ideal para Dev/UAT/CI y combinarlo con GCP/AWS en producción (enfoque \emph{hybrid cloud}), a costa de mayor complejidad operativa.
+
+\noindent
+\textbf{Optimización de costos (aplicable a cualquier nube):}
+\begin{itemize}
+  \item Reservas/compromisos a 1 año para Prod y posiblemente UAT/CI (ahorros 30--50\%).
+  \item \emph{Right-sizing} continuo usando métricas de CPU/RAM y reducir tamaños si hay sobreaprovisionamiento.
+  \item Favorecer escala horizontal con instancias más baratas (p.\,ej., familias \enquote{a} de AMD en AWS) cuando sea conveniente.
+  \item Servicios gestionados si reducen riesgo operativo (p.\,ej., RDS/Cloud SQL) con evaluación de costo total.
+  \item Apagado programado de Dev/UAT en horas no laborales (ahorros 60\%).
+  \item Alertas de presupuesto y uso de \emph{cost management} para evitar desviaciones.
+\end{itemize}
+
+\noindent
+\textbf{Fuentes):}
+\begin{itemize}
+  \item https://aws.amazon.com/es/pricing/?nc2=h_pr_pr&aws-products-pricing.sort-by=item.additionalFields.productNameLowercase&aws-products-pricing&aws-products-pricing.sort-order=asc&awsf.Free%20Tier%20Type=*all&awsf.tech-category=*all
+  \item https://instances.vantage.sh/aws/ec2/t3.large?currency=USD
+  \item https://www.economize.cloud/resources/aws/pricing/ec2/t3.large/
+  \item https://www.geeksforgeeks.org/cloud-computing/aws-ebs-pricing/
+  \item https://cloudchipr.com/blog/minimizing-cost-for-aws-ebs
+  \item https://azure.microsoft.com/en-us/pricing/details/virtual-machines/windows/
+  \item https://cloudprice.net/gcp/compute/instances/e2-standard-2
+  \item https://www.cloudzero.com/blog/google-vps-pricing/
+  \item https://cloud.google.com/blog/products/infrastructure/google-cloud-announces-41st-cloud-region-in-mexico
+  \item https://docs.digitalocean.com/products/droplets/details/pricing/
+  \item https://onedollarvps.com/pricing/digitalocean-pricing.html
+  \item https://www.digitalocean.com/blog/host-ephi-on-select-digitalocean-products
+\end{itemize}
+
+\end{document}

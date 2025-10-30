@@ -1,0 +1,57 @@
+{
+  "name": "Jenkins_Build_Failed",
+  "stream_type": "metrics",
+  "stream_name": "default_jenkins_builds_last_build_result_ordinal",
+  "is_real_time": "true",
+  "query_condition": {
+    "type": "custom",
+    "conditions": {
+      "groupId": "jenkins-failed-group",
+      "label": "and",
+      "items": [
+        {
+          "column": "buildable",
+          "operator": "=",
+          "value": "true",
+          "ignore_case": false,
+          "id": "condition-buildable"
+        }
+      ]
+    },
+    "sql": null,
+    "promql": null,
+    "promql_condition": null,
+    "aggregation": {
+      "group_by": ["jenkins_job"],
+      "function": "max",
+      "having": {
+        "column": "value",
+        "operator": ">",
+        "value": 0,
+        "ignore_case": false
+      }
+    },
+    "vrl_function": null,
+    "search_event_type": null,
+    "multi_time_range": []
+  },
+  "trigger_condition": {
+    "period": 1,
+    "operator": ">=",
+    "threshold": 1,
+    "frequency": 1,
+    "cron": "",
+    "frequency_type": "minutes",
+    "silence": 30,
+    "timezone": "UTC",
+    "tolerance_in_secs": null,
+    "align_time": true
+  },
+  "destinations": [
+    "Slack Alertas"
+  ],
+  "context_attributes": [],
+  "row_template": "",
+  "description": "Alerta cuando un build de Jenkins falla (result_ordinal > 0)",
+  "enabled": true
+}

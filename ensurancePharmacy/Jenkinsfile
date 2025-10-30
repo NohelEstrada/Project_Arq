@@ -149,6 +149,70 @@ pipeline {
             }
         }
         
+        stage('Deploy Alert Forwarder') {
+            when {
+                expression { 
+                    env.ENVIRONMENT == 'production'
+                }
+            }
+            steps {
+                script {
+                    echo "Deploying OpenObserve Alert Forwarder for production monitoring..."
+                    
+                    dir('monitoring/openobserve') {
+                        // Stop existing forwarder if running
+                        sh "docker-compose -f docker-compose-forwarder.yml down || true"
+                        
+                        // Build and start alert forwarder
+                        sh "docker-compose -f docker-compose-forwarder.yml up -d --build"
+                        
+                        // Wait for forwarder to be ready
+                        sh "sleep 10"
+                        
+                        // Health check for alert forwarder
+                        sh """
+                            echo 'Checking Alert Forwarder health...'
+                            curl -f http://localhost:5001/health || exit 1
+                            echo 'Alert Forwarder is healthy!'
+                        """
+                        
+                        // Test webhook endpoint
+                        sh """
+                            echo 'Testing webhook endpoint...'
+                            curl -X POST http://localhost:5001/webhook \
+                              -H 'Content-Type: application/json' \
+                              -d '{
+                                "alerts": [{
+                                  "status": "test",
+                                  "labels": {
+                                    "alertname": "Jenkins Pipeline Test",
+                                    "severity": "info"
+                                  },
+                                  "annotations": {
+                                    "summary": "Alert forwarder deployed successfully",
+                                    "description": "This is a test alert from Jenkins pipeline"
+                                  },
+                                  "startsAt": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"
+                                }]
+                              }' || echo 'Webhook test completed'
+                        """
+                    }
+                    
+                    echo "Alert Forwarder deployed successfully on port 5001"
+                }
+            }
+            post {
+                failure {
+                    script {
+                        sendFailureEmail('Alert Forwarder Deployment', 'Failed to deploy Alert Forwarder service')
+                    }
+                }
+                success {
+                    echo "Alert Forwarder is ready to forward Grafana alerts as OpenObserve notifications"
+                }
+            }
+        }
+        
         stage('Smoke Tests') {
             steps {
                 sh """
@@ -196,6 +260,18 @@ def sendFailureEmail(stageName, message) {
 }
 
 def sendSuccessEmail() {
+    def monitoringInfo = ""
+    if (env.ENVIRONMENT == 'production') {
+        monitoringInfo = """
+            
+            Monitoring Services:
+            - Grafana: http://localhost:3000
+            - Prometheus: http://localhost:9090
+            - OpenObserve: http://localhost:5080
+            - Alert Forwarder: http://localhost:5001/health
+        """
+    }
+    
     emailext (
         subject: "Deployment Success: ${env.JOB_NAME} - ${env.ENVIRONMENT}",
         body: """
@@ -204,8 +280,9 @@ def sendSuccessEmail() {
             Branch: ${env.BRANCH_NAME}
             Commit: ${env.GIT_COMMIT_HASH}
             
-            Frontend: http://localhost:${env.FRONTEND_PORT}
-            Backend: http://localhost:${env.BACKEND_PORT}
+            Application Services:
+            - Frontend: http://localhost:${env.FRONTEND_PORT}
+            - Backend: http://localhost:${env.BACKEND_PORT}${monitoringInfo}
             
             Build URL: ${env.BUILD_URL}
         """,
