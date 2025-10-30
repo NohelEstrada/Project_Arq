@@ -155,13 +155,11 @@ EOF
             steps {
                 script {
                     dir('ensurancePharmacy') {
-                        // Verificar que .env.prod existe (solo en producción)
+                        // Crear y exportar variables para producción
                         if (env.ENVIRONMENT == 'production') {
                             sh """
-                                if [ ! -f .env.prod ]; then
-                                    echo "❌ ERROR: .env.prod not found!"
-                                    echo "Creating .env.prod now..."
-                                    cat > .env.prod << 'ENVEOF'
+                                echo "Creating .env.prod with Jenkins credentials..."
+                                cat > .env.prod << 'ENVEOF'
 # Environment variables for production
 SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
 SMTP_HOST=smtp.gmail.com
@@ -171,11 +169,19 @@ SMTP_PASSWORD=${SMTP_PASSWORD}
 SMTP_FROM=${SMTP_FROM}
 EMAIL_RECIPIENTS=${EMAIL_RECIPIENTS}
 ENVEOF
-                                fi
-                                echo "Checking .env.prod:"
+                                echo "✅ Created .env.prod"
                                 ls -la .env.prod
-                                echo "Variables loaded (masked):"
+                                echo "Variables configured:"
                                 cat .env.prod | grep -E "^[A-Z]" | cut -d= -f1
+                                
+                                # Exportar variables al entorno actual
+                                export SLACK_WEBHOOK_URL='${SLACK_WEBHOOK_URL}'
+                                export SMTP_USER='${SMTP_USER}'
+                                export SMTP_PASSWORD='${SMTP_PASSWORD}'
+                                export SMTP_FROM='${SMTP_FROM}'
+                                export EMAIL_RECIPIENTS='${EMAIL_RECIPIENTS}'
+                                
+                                echo "✅ Variables exported to environment"
                             """
                         }
                         
@@ -184,7 +190,15 @@ ENVEOF
                         
                         // Build and start new containers
                         if (env.ENVIRONMENT == 'production') {
-                            sh "docker-compose -f ${env.COMPOSE_FILE} --env-file .env.prod up -d --build"
+                            withEnv([
+                                "SLACK_WEBHOOK_URL=${env.SLACK_WEBHOOK_URL}",
+                                "SMTP_USER=${env.SMTP_USER}",
+                                "SMTP_PASSWORD=${env.SMTP_PASSWORD}",
+                                "SMTP_FROM=${env.SMTP_FROM}",
+                                "EMAIL_RECIPIENTS=${env.EMAIL_RECIPIENTS}"
+                            ]) {
+                                sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build"
+                            }
                         } else {
                             sh "docker-compose -f ${env.COMPOSE_FILE} up -d --build"
                         }
