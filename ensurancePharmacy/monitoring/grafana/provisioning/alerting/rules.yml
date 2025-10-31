@@ -170,8 +170,8 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 80
-                      - 90
+                      - 2
+                      - 3
                     type: within_range
                   operator:
                     type: and
@@ -216,7 +216,7 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 85
+                      - 1
                     type: gt
                   operator:
                     type: and
