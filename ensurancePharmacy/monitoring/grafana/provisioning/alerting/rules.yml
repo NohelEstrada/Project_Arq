@@ -171,7 +171,6 @@ groups:
                 - evaluator:
                     params:
                       - 2
-                      - 3
                     type: within_range
                   operator:
                     type: and
